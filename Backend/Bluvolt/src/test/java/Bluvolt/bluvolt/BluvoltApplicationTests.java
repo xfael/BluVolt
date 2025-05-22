@@ -1,4 +1,4 @@
-package br.Bluvolt.Bluvolt;
+package Bluvolt.bluvolt;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

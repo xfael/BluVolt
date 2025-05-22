@@ -1,0 +1,325 @@
+:root {
+    --primary-color: #d05407; /* Changed primary color to orange */
+    --secondary-color: #d05407; /*Secondary color remains the same*/
+    --dark-color: #343a40;
+    --light-color: #f8f9fa;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+}
+
+/* Navbar Styles */
+.navbar {
+    transition: all 0.3s ease;
+    background-color: var(--primary-color);
+}
+
+.navbar-scrolled {
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-logo {
+    max-height: 60px; /* Aumentado de 40px para 60px */
+    width: auto;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .navbar-logo {
+        max-height: 50px; /* Ajustado para dispositivos móveis */
+    }
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('../img/wallpaper.png');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    padding-top: 80px;
+}
+
+/* Hero Section with Calculator */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+                url('../img/wallpaper.png');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    padding: 120px 0 80px;
+}
+
+.hero-section .card {
+    background: rgba(128, 128, 128, 0.95); /* Mesma cor da navbar (#808080) */
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.hero-section .card:hover {
+    transform: translateY(-5px);
+}
+
+.hero-section .card-body {
+    color: white;
+}
+
+.hero-section .text-dark {
+    color: white !important;
+}
+
+.hero-section .form-control {
+    border: 2px solid var(--light-color);
+    border-radius: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.hero-section .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.hero-section .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.hero-section .btn-secondary {
+    padding: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+.hero-section .btn-secondary:hover {
+    background-color: #b34606 !important;
+    border-color: #b34606 !important;
+}
+
+#resultContainer .rounded {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 2px solid var(--light-color);
+}
+
+#resultContainer .text-dark {
+    color: white !important;
+}
+
+#resultContainer .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+#resultContainer .h3 {
+    color: var(--secondary-color) !important;
+}
+
+
+/* Benefits Section */
+.benefit-item {
+    text-align: center;
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+.benefit-icon {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Calculator Section */
+.calculator-section {
+    padding: 5rem 0;
+    background-color: var(--light-color);
+}
+
+/* Contact Form */
+.contact-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(23, 150, 59, 0.1);
+}
+
+/* Footer */
+footer {
+    background-color: var(--dark-color);
+    padding: 4rem 0 2rem;
+}
+
+.footer-logo {
+    max-width: 140px;
+    height: auto;
+}
+
+/* Utility Classes */
+.highlight-secondary {
+    color: var(--secondary-color);
+}
+
+/* Page Headers */
+.page-header {
+    background: linear-gradient(rgba(23, 150, 59, 0.9), rgba(23, 150, 59, 0.9)),
+                url('https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+.btn-outline-primary {
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+/* Links */
+a {
+    color: var(--primary-color);
+}
+
+a:hover {
+    color: var(--secondary-color);
+}
+
+/* Responsive Images */
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 100vh;
+        padding: 80px 0 40px;
+    }
+
+    .benefit-item {
+        padding: 1rem;
+    }
+
+    .card {
+        margin: 0 10px;
+    }
+
+    .navbar-brand img {
+        max-width: 120px;
+    }
+
+    h1.display-4 {
+        font-size: 2rem;
+    }
+
+    .lead {
+        font-size: 1rem;
+    }
+
+    .footer-logo {
+        max-width: 120px;
+    }
+
+    .process-icon i {
+        font-size: 2em;
+    }
+}
+
+/* Register page background */
+body.register-page {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+                url('https://plus.unsplash.com/premium_photo-1675744019107-6c718d3d21ef?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Register form styles */
+.register-page .form-control {
+    border: 2px solid var(--light-color);
+    border-radius: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.register-page .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.register-page .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.register-page .form-label {
+    color: white;
+}
+
+.register-page .btn-primary {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    padding: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.register-page .btn-primary:hover {
+    background-color: #b34606 !important;
+    border-color: #b34606 !important;
+}
+
+.register-page .form-check-label {
+    color: white;
+}
+
+.register-page .h5 {
+    color: white;
+}
+
+/* Additional color overrides */
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.border-primary {
+    border-color: var(--primary-color) !important;
+}
+
+.navbar-nav .nav-link.btn-outline-light {
+    color: var(--light-color) !important;
+    border: 2px solid var(--secondary-color) !important;
+    border-radius: 4px;
+    padding: 6px 12px !important;
+}
+
+.navbar-nav .nav-link.btn-outline-light:hover {
+    background-color: var(--secondary-color) !important;
+    color: white !important;
+}

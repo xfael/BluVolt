@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Bluvolt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" type="image/webp" href="static/img/logo-bluvolt.webp">
+    <link rel="apple-touch-icon" href="static/img/logo-bluvolt.webp">
+    <link rel="icon" sizes="32x32" href="static/img/logo-bluvolt.webp">
+    <link rel="icon" sizes="16x16" href="static/img/logo-bluvolt.webp">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #ece8e8;
+        }
+        .area-central {
+            display: flex;
+            flex-direction: row;
+            margin: 140px auto 60px;
+            width: fit-content;
+            min-height: 700px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s ease;
+            align-items: stretch;
+        }
+        .lado-esquerdo {
+            width: 400px;
+            background: linear-gradient(178deg, rgba(0, 194, 129, 0.97) 0%, rgba(0, 194, 52, 0.97) 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 30px;
+            transition: height 0.5s ease;
+            min-height: 700px;
+        }
+        .lado-direito {
+            display: none;
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            background: white;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 30px;
+            transition: width 0.5s ease, opacity 0.5s ease;
+            min-height: 700px;
+        }
+        .lado-direito.ativo {
+            display: flex;
+            width: 400px;
+            opacity: 1;
+            animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        input, select {
+            padding: 12px;
+            border: 1px solid #e4e4e4;
+            border-radius: 11px;
+            background-color: aliceblue;
+            height: 44px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            width: 100%;
+            max-width: 320px;
+        }
+        button {
+            background-color: #ff5c33;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            height: 44px;
+            margin-bottom: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+        button:hover {
+            background-color: #e14b23;
+        }
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #444;
+            transition: background-color 0.3s ease;
+            gap: 10px;
+        }
+        .btn-google:hover {
+            background-color: #c4c4c4;
+        }
+        label {
+            margin-top: 10px;
+            margin-left: 8px;
+        }
+        .btn-toggle-form {
+            min-width: 100px;
+        }
+        #btn-voltar {
+            position: absolute;
+            top: -45px;
+            left: 20px;
+            background-color: #f0f0f0;
+            border-radius: 50%;
+            border: none;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #555;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+            user-select: none;
+            z-index: 10;
+        }
+        #btn-voltar:hover {
+            background-color: #ddd;
+        }
+        .lado-direito h2 {
+            position: relative;
+            margin-bottom: 40px;
+            margin-top: 200px;
+            padding-left: 60px;
+            bottom: -10px;
+            left: -27px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .form-check-input { margin-top: 0; flex-shrink: 0; }
+        .form-check-label { margin-bottom: 0; line-height: 1.2; user-select: none; }
+        @media (max-width: 768px) {
+            .area-central { flex-direction: column; width: 90%; min-height: auto; }
+            .lado-esquerdo, .lado-direito.ativo { width: 100% !important; min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #808080;">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">
+            <img src="static/img/logo-bluvolt.webp" alt="BluVolt" class="navbar-logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Início</a></li>
+                <li class="nav-item"><a class="nav-link" href="services.html">Serviços</a></li>
+                <li class="nav-item"><a class="nav-link" href="projects.html">Projetos</a></li>
+                <li class="nav-item"><a class="nav-link" href="blog.html">Blog</a></li>
+                <li class="nav-item"><a class="nav-link" href="faq.html">FAQ</a></li>
+                <li class="nav-item"><a class="nav-link btn btn-sm btn-secondary text-white ms-2 px-3" href="contact.html">Contato</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-sm btn-outline-light px-3" href="#">Entrar / Cadastrar</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="area-central">
+    <div class="lado-esquerdo">
+        <h2>Olá novamente!</h2>
+        <form>
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" required />
+            <label for="loginSenha">Senha</label>
+            <input id="loginSenha" type="password" required />
+            <div class="d-flex align-items-center justify-content-between mt-4">
+                <button type="submit" class="me-2" style="width: 45%;">Login</button>
+                <span class="text-white fw-semibold">ou</span>
+                <button class="btn-google ms-2" type="button" style="width: 45%;">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" style="height: 20px;">
+                    Google
+                </button>
+            </div>
+            <button type="button" class="btn btn-outline-light fw-semibold mt-4" onclick="mostrarFormularioCadastro()">
+                Criar nova conta
+            </button>
+        </form>
+    </div>
+
+    <div class="lado-direito" id="lado-direito">
+        <h2 class="text-center mt-2">Criar nova conta
+            <button id="btn-voltar" onclick="fecharFormularioCadastro()" aria-label="Voltar">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        </h2>
+
+        <div class="mb-4 d-flex justify-content-center gap-3 mt-3 selecao-formulario">
+            <button type="button" class="btn btn-outline-success btn-toggle-form rounded-pill" onclick="mostrarFormulario('empresa')" id="btnEmpresa">Empresa</button>
+            <button type="button" class="btn btn-outline-primary btn-toggle-form rounded-pill" onclick="mostrarFormulario('consumidor')" id="btnConsumidor">Cliente</button>
+        </div>
+
+        <form id="formEmpresa" style="display: none;" method="post" action="/auth/register">
+            <input type="hidden" name="tipo" value="empresa">
+            <label>Nome da Empresa</label>
+            <input name="nome" type="text" required />
+            <label>Email corporativo</label>
+            <input name="email" type="email" required />
+            <label>Crie uma senha</label>
+            <input name="senha" type="password" required />
+            <label>Tipo de energia</label>
+            <select name="tipoEnergia" required>
+                <option  value="" disabled selected>Selecione o tipo de energia</option>
+                <option  value="solar">Solar</option>
+                <option  value="eolica">Eólica</option>
+                <option  value="hidreletrica">hidreletrica</option>
+                <option  value="biomassa">Biomassa</option>
+                <option  value="outra">Outra</option>
+            </select>
+            <label>CNPJ</label>
+            <input name="cnpj" type="text" required />
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="termosEmpresa" required>
+                <label class="form-check-label" for="termosEmpresa">
+                    Li e aceito os Termos de Privacidade e de Uso
+                </label>
+            </div>
+            <button type="submit">Cadastrar Empresa</button>
+        </form>
+
+        <form id="formConsumidor" style="display: none;" method="post" action="/auth/register">
+            <input type="hidden" id="tipoCadastro" name="tipo" value="">
+            <label>Nome completo</label>
+            <input name="nome" type="text" required />
+            <label>Email pessoal</label>
+            <input name="email" type="email" required />
+            <label>Crie uma senha</label>
+            <input name="senha" type="password" required />
+            <label>Confirme a senha</label>
+            <input name="senha" type="password" required />
+            <label>CPF</label>
+            <input name="cpf" type="text" required />
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="termosConsumidor" required>
+                <label class="form-check-label" for="termosConsumidor">
+                    Li e aceito os Termos de Privacidade e de Uso
+                </label>
+            </div>
+            <button type="submit">Cadastrar Consumidor</button>
+        </form>
+    </div>
+</div>
+
+<footer class="text-light mt-4 bg-dark py-4">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <img src="static/img/logo-bluvolt.webp" alt="BluVolt" class="footer-logo mb-3" style="max-width: 140px; height: auto;">
+                <p>Soluções de energia limpa e acessível para empresas e residências.</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Links Rápidos</h5>
+                <ul class="list-unstyled">
+                    <li><a href="index.html" class="text-light">Início</a></li>
+                    <li><a href="services.html" class="text-light">Serviços</a></li>
+                    <li><a href="projects.html" class="text-light">Projetos</a></li>
+                    <li><a href="blog.html" class="text-light">Blog</a></li>
+                    <li><a href="faq.html" class="text-light">FAQ</a></li>
+                    <li><a href="contact.html" class="text-light">Contato</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>Contato</h5>
+                <address>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> Rua Exemplo, 123 - São Paulo, SP</p>
+                    <p><i class="fas fa-phone me-2"></i> (11) 1234-5678</p>
+                    <p><i class="fas fa-envelope me-2"></i> contato@bluvolt.com.br</p>
+                </address>
+            </div>
+        </div>
+        <hr class="my-3 bg-light" />
+        <p class="text-center mb-0">&copy; 2025 BluVolt. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+<script>
+    function mostrarFormularioCadastro() {
+        const ladoDireito = document.getElementById('lado-direito');
+        ladoDireito.classList.add('ativo');
+    }
+
+    function fecharFormularioCadastro() {
+        const ladoDireito = document.getElementById('lado-direito');
+        ladoDireito.classList.remove('ativo');
+        document.getElementById('formEmpresa').style.display = 'none';
+        document.getElementById('formConsumidor').style.display = 'none';
+    }
+
+    function mostrarFormulario(tipo) {
+        const formEmpresa = document.getElementById('formEmpresa');
+        const formConsumidor = document.getElementById('formConsumidor');
+        const btnEmpresa = document.getElementById('btnEmpresa');
+        const btnConsumidor = document.getElementById('btnConsumidor');
+        const inputTipo = document.getElementById('tipoCadastro');
+
+        if (tipo === 'empresa') {
+            formEmpresa.style.display = 'flex';
+            formConsumidor.style.display = 'none';
+            btnEmpresa.classList.replace('btn-outline-success', 'btn-success');
+            btnConsumidor.classList.replace('btn-primary', 'btn-outline-primary');
+            inputTipo.value = 'empresa';
+        } else {
+            formEmpresa.style.display = 'none';
+            formConsumidor.style.display = 'flex';
+            btnEmpresa.classList.replace('btn-success', 'btn-outline-success');
+            btnConsumidor.classList.replace('btn-outline-primary', 'btn-primary');
+            inputTipo.value = 'consumidor';
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

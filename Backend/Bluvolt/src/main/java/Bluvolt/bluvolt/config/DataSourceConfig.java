@@ -1,6 +1,5 @@
-package br.Bluvolt.Bluvolt;
+package Bluvolt.bluvolt.config;
 
-import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -10,23 +9,21 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import javax.sql.DataSource;
 
-
 @Configuration
-public class DataConfigs {
+public class DataSourceConfig {
 
     @Bean
     public DataSource dataSource(){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/bluvoltuser?useTimezone=true&Timezone=UTC");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/bluvoltuser?useTimezone=true&serverTimezone=UTC");
         dataSource.setUsername("root");
         dataSource.setPassword("13032006");
         return dataSource;
-
     }
 
     @Bean
-    public JpaVendorAdapter jpaVendorAdapter (){
+    public JpaVendorAdapter jpaVendorAdapter(){
         HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
         adapter.setDatabase(Database.MYSQL);
         adapter.setShowSql(true);
