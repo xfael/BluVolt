@@ -1,17 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login Bluvolt</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="BluVolt - Soluções de energia limpa e acessível para empresas e residências">
+    <meta name="keywords" content="energia solar, energia eólica, energia renovável, sustentabilidade, economia de energia">
+    <meta name="author" content="BluVolt">
+    <meta name="robots" content="index, follow">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" th:href="@{/imagens/logo-bluvolt.webp}">
+    <link rel="apple-touch-icon" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="32x32" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="16x16" th:href="@{/imagens/logo-bluvolt.png}">
+
+    <title>BluVolt - login/registro</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="static/css/style.css">
-    <link rel="icon" type="image/webp" href="static/img/logo-bluvolt.ico">
-    <link rel="apple-touch-icon" href="resources/static/img/logo-bluvolt.ico">
-    <link rel="icon" sizes="32x32" href="static/img/logo-bluvolt.ico">
-    <link rel="icon" sizes="16x16" href="static/img/logo-bluvolt.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         body {
             margin: 0;
@@ -170,7 +184,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #808080;">
     <div class="container">
         <a class="navbar-brand" href="index.html">
-            <img src="static/img/logo-bluvolt.webp" alt="BluVolt" class="navbar-logo">
+            <img th:src="@{/imagens/logo-bluvolt.png}" alt="BluVolt" class="navbar-logo">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -215,6 +229,10 @@
                 <option value="empresa">Empresa</option>
             </select>
 
+            <button style="margin-bottom = -200px;" type="button" class="btn btn-outline-light fw-semibold mt-4" onclick="mostrarFormularioCadastro()">
+                Criar nova conta
+            </button>
+
             <div class="d-flex align-items-center justify-content-between mt-4">
                 <button type="submit" class="me-2" style="width: 45%;">Login</button>
                 <span class="text-white fw-semibold">ou</span>
@@ -223,9 +241,7 @@
                     Google
                 </button>
             </div>
-            <button type="button" class="btn btn-outline-light fw-semibold mt-4" onclick="mostrarFormularioCadastro()">
-                Criar nova conta
-            </button>
+
         </form>
     </div>
 
@@ -294,7 +310,7 @@
     <div class="container">
         <div class="row g-4">
             <div class="col-md-4">
-                <img src="static/img/logo-bluvolt.webp" alt="BluVolt" class="footer-logo mb-3" style="max-width: 140px; height: auto;">
+                <img th:src="@{/imagens/logo-bluvolt.png}" alt="BluVolt" class="footer-logo mb-3" style="GImax-width: 140px; height: auto;">
                 <p>Soluções de energia limpa e acessível para empresas e residências.</p>
             </div>
             <div class="col-md-4">

@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface ConsumidorRepository extends CrudRepository<Consumidor, String> {
+public interface ConsumidorRepository extends CrudRepository<Consumidor, Long> {
     Consumidor findById(long id);
 
     @Query(value = "SELECT * FROM bluvoltuser.consumidor WHERE email = :email AND senha = :senha", nativeQuery = true)

@@ -56,7 +56,7 @@ public class AuthController {
             model.addAttribute("erro", "Tipo de usuário inválido.");
         }
 
-        return "register"; // renderiza novamente a página com erro
+        return "register";
     }
 
     @PostMapping("/register")
@@ -69,8 +69,7 @@ public class AuthController {
             @RequestParam(required = false) String cnpj,
             @RequestParam(required = false) String tipoEnergia,
             Model model
-    ) {
-        if ("consumidor".equals(tipo)) {
+    ) {if ("consumidor".equals(tipo)) {
             if (nome.isEmpty() || email.isEmpty() || senha.isEmpty() || cpf.isEmpty()) {
                 model.addAttribute("erro", "Preencha todos os campos obrigatórios do consumidor.");
                 return "register";
