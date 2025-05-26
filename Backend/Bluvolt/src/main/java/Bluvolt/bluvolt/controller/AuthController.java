@@ -21,13 +21,28 @@ public class AuthController {
     @Autowired
     private EmpresaRepository empresaRepository;
 
+    @GetMapping("/blog")
+    public String blog(){return "blog"; }
+
+    @GetMapping("/contact")
+    public String contact(){return "contact"; }
+
+    @GetMapping("/faq")
+    public String faq(){return "faq"; }
+
+    @GetMapping("/projects")
+    public String projects(){return "projects"; }
+
+    @GetMapping("/services")
+public String services(){return "services"; }
+
     @GetMapping("/register")
     public String register() {
         return "register";
     }
 
-    @GetMapping("/home")
-    public String home() {
+    @GetMapping("/inicio")
+    public String inicio() {
         return "index";
     }
 
@@ -41,14 +56,14 @@ public class AuthController {
         if ("consumidor".equals(tipoUsuario)) {
             Consumidor consumidor = consumidorRepository.login(email, senha);
             if (consumidor != null) {
-                return "redirect:/auth/home";
+                return "redirect:/auth/inicio";
             } else {
                 model.addAttribute("erro", "Email ou senha de consumidor incorretos.");
             }
         } else if ("empresa".equals(tipoUsuario)) {
             Empresa empresa = empresaRepository.login(email, senha);
             if (empresa != null) {
-                return "redirect:/auth/home";
+                return "redirect:/auth/inicio";
             } else {
                 model.addAttribute("erro", "Email ou senha de empresa incorretos.");
             }
