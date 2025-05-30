@@ -14,7 +14,7 @@ public class Consumidor{
     private Long id;
 
     @NotEmpty
-    private final String tipo = "consumidor";
+    private String tipo = "consumidor";
 
     @NotEmpty
     private String nome;
@@ -27,7 +27,6 @@ public class Consumidor{
 
     @NotEmpty
     private String cpf;
-
 
 
     public String getNome() {

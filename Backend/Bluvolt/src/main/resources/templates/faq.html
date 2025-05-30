@@ -37,7 +37,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #808080;">
         <div class="container">
             <a class="navbar-brand" href="index.html">
-                <img th:src="@{/imagens/logo-bluvolt.png}" alt="BluVolt" class="navbar-logo">o
+                <img th:src="@{/imagens/logo-bluvolt.png}" alt="BluVolt" class="navbar-logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -232,7 +232,7 @@
                 <div class="col-lg-8 text-center">
                     <h3>Não encontrou sua pergunta?</h3>
                     <p class="mb-4">Entre em contato conosco e nossa equipe terá prazer em esclarecer suas dúvidas.</p>
-                    <a href="contact.html" class="btn btn-primary px-4 py-2">Enviar Pergunta</a>
+                    <button th:href="/auth/contact" class="btn btn-primary px-4 py-2">Enviar Pergunta</button>
                 </div>
             </div>
         </div>

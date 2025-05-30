@@ -12,7 +12,7 @@ public class Empresa{
     private Long id;
 
     @NotEmpty
-    private final String tipo = "empresa";
+    private String tipo = "empresa";
 
     @NotEmpty
     private String nome;
