@@ -11,7 +11,8 @@
 
 ## 🌱 Sobre o Projeto
 
-BluVolt é uma plataforma inovadora que conecta consumidores e empresas interessados em energia renovável com fornecedores especializados no setor. Nossa missão é democratizar o acesso à energia limpa e sustentável, facilitando a transição energética no Brasil.
+Site institucional da **BluVolt**, uma empresa fictícia especializada em soluções de energia renovável para empresas e residências. 
+Este site foi desenvolvido como parte de um **projeto de trabalho acadêmico** para fins educativos.
 
 ### 🎯 Objetivo Principal
 
