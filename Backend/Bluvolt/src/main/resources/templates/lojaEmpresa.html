@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluvolt - Painel do Vendedor</title>
+    <link rel="stylesheet" th:href="@{/css/lojaEmpresa.css}">
+    <link rel="stylesheet" th:href="@{/css/loja.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+<nav class="eco-navbar">
+    <div class="eco-navbar-brand">Bluvolt - Painel</div>
+    <div class="eco-navbar-links">
+        <a href="#" class="eco-nav-link active">Dashboard</a>
+        <a href="testeEmpresa.html" class="eco-nav-link">Chat</a>
+    </div>
+    <div class="eco-user-profile">
+        <span id="eco-username" th:text="${nome}"></span>
+        <div class="eco-user-avatar" id="eco-user-avatar">EE</div>
+    </div>
+</nav>
+
+<div th:if="${mensagem}" class="eco-popup" id="eco-popup-msg">
+    <span th:text="${mensagem}"></span>
+</div>
+
+<div class="eco-seller-container">
+    <div class="eco-seller-dashboard">
+        <div class="eco-summary-cards">
+            <div class="eco-summary-card">
+                <div class="eco-summary-icon sales"><i class="fas fa-dollar-sign"></i></div>
+                <div class="eco-summary-info"><span th:text="${totalVendasMensal}"></span><p>Vendas (30 dias)</p></div>
+            </div>
+            <div class="eco-summary-card">
+                <div class="eco-summary-icon orders"><i class="fas fa-shopping-bag"></i></div>
+                <div class="eco-summary-info"><span th:text="${totalPedidos}"></span><p>Pedidos pendentes</p></div>
+            </div>
+            <div class="eco-summary-card">
+                <div class="eco-summary-icon products"><i class="fas fa-box-open"></i></div>
+                <div class="eco-summary-info"><span th:text="${totalProdutos}"></span><p>Produtos</p></div>
+            </div>
+            <div class="eco-summary-card">
+                <div class="eco-summary-icon customers"><i class="fas fa-users"></i></div>
+                <div class="eco-summary-info"><span th:text="${totalClientes}"></span><p>Clientes</p></div>
+            </div>
+        </div>
+
+        <div class="eco-dashboard-content">
+            <div class="eco-dashboard-section">
+                <div class="eco-section-header">
+                    <h3>Vendas Mensais</h3>
+                    <select class="eco-time-filter">
+                        <option>Últimos 30 dias</option>
+                        <option>Últimos 3 meses</option>
+                        <option>Últimos 6 meses</option>
+                        <option>Este ano</option>
+                    </select>
+                </div>
+                <div class="eco-chart-container">
+                    <canvas id="eco-sales-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="eco-dashboard-section">
+                <div class="eco-section-header">
+                    <h3>Últimos Pedidos</h3>
+                    <a href="#" class="eco-view-all">Ver todos</a>
+                </div>
+                <div class="eco-orders-table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr><td>#1025</td><td>Carlos Silva</td><td>10/06/2023</td><td>R$ 1.299,90</td><td><span class="eco-status shipped">Enviado</span></td></tr>
+                        <tr><td>#1024</td><td>Ana Oliveira</td><td>09/06/2023</td><td>R$ 899,90</td><td><span class="eco-status delivered">Entregue</span></td></tr>
+                        <tr>
+                            <td>#1023</td><td>Roberto Santos</td><td>08/06/2023</td><td>R$ 2.499,90</td>
+                            <td><span class="eco-status processing">Processando</span></td>
+                            <td>
+                                <button class="eco-action-btn view"><i class="fas fa-eye"></i></button>
+                                <button class="eco-action-btn print"><i class="fas fa-print"></i></button>
+                            </td>
+                        </tr>
+                        <tr><td>#1022</td><td>Mariana Costa</td><td>07/06/2023</td><td>R$ 1.799,90</td><td><span class="eco-status paid">Pago</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro de Produto -->
+    <div class="eco-modal" id="eco-add-product-modal">
+        <div class="eco-modal-content large">
+            <div class="eco-modal-header">
+                <h3>Adicionar Novo Produto</h3>
+                <button class="eco-close-modal" id="eco-close-add-product">&times;</button>
+            </div>
+            <div class="eco-modal-body">
+
+                <!-- Mensagem de sucesso ou erro -->
+                <div th:if="${erro}" class="eco-error-message" th:text="${erro}"></div>
+
+                <!-- Formulário para cadastro -->
+                <form id="eco-add-product-form" th:action="@{/auth/cadastrarProduto}" method="post">
+                    <div class="eco-form-group">
+                        <label for="eco-product-name">Nome do Produto</label>
+                        <input type="text" id="eco-product-name" name="nome" required>
+                    </div>
+
+                    <div class="eco-form-row">
+                        <div class="eco-form-group">
+                            <label for="eco-product-price">Preço (R$)</label>
+                            <input type="number" id="eco-product-price" name="preco" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="eco-form-row">
+                        <div class="eco-form-group">
+                            <label for="eco-product-category">Categoria</label>
+                            <select id="eco-product-category" name="tipoEnergia" required>
+                                <option value="">Selecione...</option>
+                                <option value="solar">Solar</option>
+                                <option value="eolica">Eólica</option>
+                                <option value="hidrica">Hídrica</option>
+                                <option value="biomassa">Biomassa</option>
+                                <option value="acessorios">Acessórios</option>
+                            </select>
+                        </div>
+                        <div class="eco-form-group">
+                            <label for="eco-product-stock">Estoque</label>
+                            <input type="number" id="eco-product-stock" name="estoque" required>
+                        </div>
+                    </div>
+
+                    <div class="eco-form-group">
+                        <label for="eco-product-description">Descrição</label>
+                        <textarea id="eco-product-description" name="descricao" rows="3" required></textarea>
+                    </div>
+
+                    <div class="eco-form-group">
+                        <label>Imagem do Produto (URL)</label>
+                        <input type="text" name="imagemUrl">
+                    </div>
+
+                    <div class="eco-form-actions">
+                        <button type="button" class="eco-cancel-btn" id="eco-cancel-add-product">Cancelar</button>
+                        <button type="submit" class="eco-save-btn">Salvar Produto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="eco-dashboard-section">
+    <div class="eco-section-header">
+        <h3>Seus Produtos</h3>
+    </div>
+
+    <div class="eco-products-grid">
+        <div class="eco-product-card" th:each="produto : ${produtos}">
+            <div class="eco-product-image-container">
+                <img th:src="${produto.imagemUrl}" th:alt="${produto.nome}" class="eco-product-image" />
+            </div>
+            <div class="eco-product-info">
+                <h3 class="eco-product-title" th:text="${produto.nome}"></h3>
+                <p class="eco-product-description" th:text="${produto.descricao}"></p>
+                <div class="eco-product-price">
+                    R$ <span th:text="${#numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}"></span>
+                </div>
+
+                <!-- Botão de exclusão -->
+                <form th:action="@{/auth/excluirProduto}" method="post" style="margin-top: 10px;">
+                    <input type="hidden" name="produtoId" th:value="${produto.id}" />
+                    <button type="submit" class="eco-btn eco-btn-red">
+                        <i class="fas fa-trash-alt"></i> Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="eco-fab" id="eco-add-product-btn">
+    <i class="fas fa-plus"></i>
+</div>
+
+<script th:inline="javascript">
+    const produtos = /*[[${produtos}]]*/ [];
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:src="@{/js/lojaEmpresa.js}"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+        const popup = document.getElementById("eco-popup-msg");
+        if (popup) {
+            setTimeout(() => {
+                popup.style.opacity = "0";
+                setTimeout(() => popup.remove(), 500);
+            }, 3000); // aparece por 3 segundos
+        }
+    });
+</script>
+</body>
+</html>

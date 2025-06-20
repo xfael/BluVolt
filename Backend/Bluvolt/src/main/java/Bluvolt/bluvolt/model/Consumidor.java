@@ -28,6 +28,9 @@ public class Consumidor{
     @NotEmpty
     private String cpf;
 
+    @ManyToOne
+    @JoinColumn(name = "empresa_id")
+    private Empresa empresa;
 
     public String getNome() {
         return nome;

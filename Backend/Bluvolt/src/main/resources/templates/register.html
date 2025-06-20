@@ -228,10 +228,6 @@
                 <option value="empresa">Empresa</option>
             </select>
 
-            <button style="margin-bottom = -200px;" type="button" class="btn btn-outline-light fw-semibold mt-4" onclick="mostrarFormularioCadastro()">
-                Criar nova conta
-            </button>
-
             <div class="d-flex align-items-center justify-content-between mt-4">
                 <button type="submit" class="me-2" style="width: 45%;">Login</button>
                 <span class="text-white fw-semibold">ou</span>
@@ -240,6 +236,10 @@
                     Google
                 </button>
             </div>
+
+            <button style="margin-bottom = -200px;" type="button" class="btn btn-outline-light fw-semibold mt-4" onclick="mostrarFormularioCadastro()">
+                Criar nova conta
+            </button>
 
         </form>
     </div>
@@ -291,8 +291,10 @@
 
         <form id="formConsumidor" style="display: none;" method="post" action="/auth/register">
             <input type="hidden" id="tipoCadastro" name="tipo" value="">
-            <label>Nome completo</label>
+            <label>Nome</label>
             <input name="nome" type="text" required />
+            <label>Sobrenome</label>
+            <input name="sobrenome" type="text" required />
             <label>Email pessoal</label>
             <input name="email" type="email" required />
             <label>Crie uma senha</label>

@@ -1,18 +1,43 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoConnect - Chat Funcional</title>
-    <link rel="stylesheet" th:href="@{/css/chat.css}" >
+    <title>Bluvolt - Chat Funcional</title>
+
+    <link rel="stylesheet" href="../../../../../../../../Downloads/teste/teste.css">
 </head>
 <body>
+
+    <nav class="eco-navbar">
+        <div class="eco-navbar-brand">Bluvolt</div>
+        <div class="eco-navbar-links">
+            <a href="teste.html" class="eco-nav-link active">
+                <i class="fas fa-comments"></i> Chat
+            </a>
+            <a href="../../../../../../../../Downloads/teste/loja.html" class="eco-nav-link">
+                <i class="fas fa-shopping-cart"></i> Loja
+            </a>
+            <a href="#" class="eco-nav-link">
+                <i class="fas fa-tag"></i> Cupons
+            </a>
+        </div>
+        <div class="eco-user-profile">
+            <span id="eco-username">Carlos Silva</span>
+            <div class="eco-user-avatar" id="eco-user-avatar">CS</div>
+        </div>
+    </nav>
+    
+
     <div class="sidebar">
         <div class="user-header">
-            <span id="user-name">Carlos Silva</span>
-            <button id="user-config-btn" style="background:none; border:none; cursor:pointer; margin-left:10px;">⚙️</button>
+            <div>
+                <span id="user-name">Carlos Silva</span>
+                <button id="user-config-btn" style="background:none; border:none; cursor:pointer; margin-left:10px;">⚙️</button>
+            </div>
+            <div class="user-points" id="user-points">0</div>
         </div>
-
+        
         <div class="search-filter">
             <input type="text" id="search-input" placeholder="Buscar empresa...">
             <div class="energy-filter">
@@ -23,24 +48,24 @@
                 <button data-filter="biomassa">Biomassa</button>
             </div>
         </div>
-
+        
         <div class="company-list" id="company-list">
             <!-- Empresas serão carregadas aqui pelo JavaScript -->
         </div>
     </div>
-
+    
     <div class="chat-container">
         <div class="chat-header">
             <div class="company-logo" id="current-company-logo">OE</div>
             <div id="current-company-name">Selecione uma empresa para conversar</div>
         </div>
-
+        
         <div class="chat-messages" id="chat-messages">
             <div class="welcome-message">
                 <p>Bem-vindo ao EcoConnect! Selecione uma empresa de energia renovável para iniciar uma conversa.</p>
             </div>
         </div>
-
+        
         <div class="message-input-container" id="message-input-container" style="display: none;">
             <button class="attachment-button" title="Anexar arquivo">📎</button>
             <input type="text" class="message-input" id="message-input" placeholder="Digite sua mensagem...">
@@ -56,26 +81,26 @@
                 <div class="config-title">Configurações do Perfil</div>
                 <button class="close-config" id="close-user-config">&times;</button>
             </div>
-
+            
             <div class="profile-picture-upload">
                 <div class="profile-picture-preview" id="user-profile-preview">
                     <div class="initials" id="user-profile-initials">CS</div>
                     <img id="user-profile-image" style="display: none;">
                 </div>
-
+                
                 <div class="upload-btn-wrapper">
                     <button class="upload-btn">Alterar Foto</button>
                     <input type="file" id="user-profile-upload" accept="image/*">
                 </div>
                 <div class="file-info" id="user-file-info">Tamanho máximo: 2MB</div>
             </div>
-
+            
             <div class="config-actions">
                 <button class="btn btn-cancel" id="cancel-user-config">Cancelar</button>
                 <button class="btn btn-save" id="save-user-config">Salvar</button>
             </div>
         </div>
     </div>
-    <script th:src="@{/js/chat.js}"></script>
+    <script src="../../../../../../../../Downloads/teste/teste.js"></script>
 </body>
 </html>

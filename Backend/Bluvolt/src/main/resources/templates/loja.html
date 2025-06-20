@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluvolt - Loja Sustentável</title>
+    <link rel="stylesheet" th:href="@{/css/loja.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+<!-- Barra de navegação superior (consistente com o chat) -->
+<nav class="eco-navbar">
+    <div class="eco-navbar-brand">Bluvolt</div>
+    <div class="eco-navbar-links">
+        <a href="teste.html" class="eco-nav-link active">
+            Chat
+        </a>
+        <a href="loja.html" class="eco-nav-link">
+            Loja
+        </a>
+        <a href="#" class="eco-nav-link">
+            Cupons
+        </a>
+    </div>
+    <div class="eco-user-profile">
+        <span id="eco-username" th:text="${nome}"></span>
+        <div class="eco-user-avatar" id="eco-user-avatar">CS</div>
+    </div>
+</nav>
+
+<!-- Conteúdo principal da loja -->
+<div class="eco-shop-container">
+    <!-- Banner de cupom -->
+    <div class="eco-coupon-banner" id="eco-coupon-banner">
+        <div class="eco-coupon-content">
+            <div class="eco-coupon-info">
+                <span class="eco-coupon-icon"><i class="fas fa-gift"></i></span>
+                <div class="eco-coupon-text">
+                    <strong>SEU CUPOM: <span id="eco-coupon-code">ECO10OFF</span></strong>
+                    <span id="eco-coupon-value">10% de desconto em produtos selecionados</span>
+                </div>
+            </div>
+            <button class="eco-copy-btn" id="eco-copy-coupon">
+                <i class="fas fa-copy"></i> Copiar
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros da loja -->
+    <div class="eco-shop-filters">
+        <div class="eco-filter-group">
+            <label for="eco-category-filter">
+                <i class="fas fa-filter"></i> Categoria:
+            </label>
+            <select id="eco-category-filter" class="eco-filter-select">
+                <option value="all">Todas</option>
+                <option value="solar">Solar</option>
+                <option value="eolica">Eólica</option>
+                <option value="hidrica">Hídrica</option>
+                <option value="biomassa">Biomassa</option>
+                <option value="acessorios">Acessórios</option>
+            </select>
+        </div>
+
+        <div class="eco-filter-group">
+            <label for="eco-price-filter">
+                <i class="fas fa-dollar-sign"></i> Preço:
+            </label>
+            <select id="eco-price-filter" class="eco-filter-select">
+                <option value="all">Todos</option>
+                <option value="0-500">Até R$ 500</option>
+                <option value="500-2000">R$ 500 - R$ 2000</option>
+                <option value="2000+">Acima de R$ 2000</option>
+            </select>
+        </div>
+
+        <div class="eco-filter-group">
+            <label for="eco-sort-filter">
+                <i class="fas fa-sort"></i> Ordenar por:
+            </label>
+            <select id="eco-sort-filter" class="eco-filter-select">
+                <option value="relevance">Relevância</option>
+                <option value="price-asc">Preço: Menor → Maior</option>
+                <option value="price-desc">Preço: Maior → Menor</option>
+                <option value="rating">Melhor Avaliado</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Grade de produtos -->
+    <div class="eco-products-grid" id="eco-products-grid">
+        <div class="eco-product-card" th:each="produto : ${produtos}">
+            <div class="eco-product-image-container">
+                <div class="eco-product-badge" th:if="${produto.estoque < 5}">Últimas unidades</div>
+                <img th:src="${produto.imagemUrl}" th:alt="${produto.nome}" class="eco-product-image" />
+            </div>
+            <div class="eco-product-info">
+                <h3 class="eco-product-title" th:text="${produto.nome}"></h3>
+                <p class="eco-product-description" th:text="${produto.descricao}"></p>
+                <div class="eco-product-price">
+                <span class="eco-product-current-price">
+                    R$ <span th:text="${#numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}"></span>
+                </span>
+                </div>
+            </div>
+
+            <button class="eco-add-to-cart eco-btn eco-btn-green" th:attr="data-id=${produto.id}">
+                <i class="fas fa-cart-plus"></i> Adicionar
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Carrinho flutuante -->
+    <div class="eco-cart-floating" id="eco-cart-button">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="eco-cart-count" id="eco-cart-count">0</span>
+    </div>
+</div>
+
+<!-- Modal do carrinho -->
+<div class="eco-modal" id="eco-cart-modal">
+    <div class="eco-modal-content">
+        <div class="eco-modal-header">
+            <h3>Seu Carrinho</h3>
+            <button class="eco-close-modal" id="eco-close-cart">&times;</button>
+        </div>
+        <div class="eco-cart-items" id="eco-cart-items">
+            <!-- Itens do carrinho serão inseridos aqui -->
+        </div>
+        <div class="eco-cart-summary">
+            <div class="eco-cart-total">
+                <span>Total:</span>
+                <span id="eco-cart-total">R$ 0,00</span>
+            </div>
+            <button class="eco-checkout-btn" id="eco-checkout-btn">
+                Finalizar Compra <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const produtos = [[${produtos}]];
+</script>
+
+<script th:src="@{/js/loja.js}"></script>
+</body>
+</html>

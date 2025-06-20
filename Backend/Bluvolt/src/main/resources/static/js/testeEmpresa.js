@@ -1,77 +1,3 @@
- // Banco de dados simulado - Perspectiva da Empresa
- const database = {
-    company: {
-        id: 1,
-        name: "Omega Energia",
-        logo: "OE",
-        energyTypes: ["eolica", "solar"]
-    },
-
-    clients: [
-        {
-            id: 101,
-            name: "Carlos Silva",
-            type: "prospect",
-            avatar: "CS",
-            lastContact: "2023-05-15T10:32:00",
-            unread: true,
-            status: "offline"
-        },
-        {
-            id: 102,
-            name: "EcoResidências Ltda",
-            type: "client",
-            avatar: "ER",
-            lastContact: "2023-05-14T15:45:00",
-            unread: false,
-            status: "online"
-        },
-        {
-            id: 103,
-            name: "Ana Oliveira",
-            type: "prospect",
-            avatar: "AO",
-            lastContact: "2023-05-10T09:12:00",
-            unread: false,
-            status: "offline"
-        },
-        {
-            id: 104,
-            name: "Shopping Verde",
-            type: "client",
-            avatar: "SV",
-            lastContact: "2023-05-08T14:20:00",
-            unread: true,
-            status: "typing"
-        }
-    ],
-
-    conversations: {
-        101: [
-            {
-                id: 1,
-                sender: "client",
-                text: "Olá! Gostaria de saber sobre painéis solares para minha casa.",
-                time: "10:30"
-            },
-            {
-                id: 2,
-                sender: "company",
-                text: "Bom dia Carlos! Temos várias opções de kits solares. Quantos kWh sua residência consome em média?",
-                time: "10:32"
-            }
-        ],
-        102: [
-            {
-                id: 1,
-                sender: "client",
-                text: "Precisamos atualizar nosso contrato de energia eólica.",
-                time: "15:45"
-            }
-        ],
-        // Outras conversas...
-    }
-};
 
 // Estado da aplicação
 const state = {
@@ -464,7 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderClientList();
     setupEventListeners();
     setupConfigModal();
-    setupProfilePictureUpload(); // <-- Nova linha
+    setupProfilePictureUpload();
+    setupNavbar(); // <-- Nova linha adicionada
 });
 
 // Atualizar a função de salvar para incluir a foto
@@ -498,3 +425,4 @@ saveBtn.addEventListener('click', async function() {
         alert('Erro ao atualizar perfil');
     }
 });*/
+
