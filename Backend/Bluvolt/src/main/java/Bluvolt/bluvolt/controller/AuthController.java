@@ -14,6 +14,8 @@ import Bluvolt.bluvolt.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -359,42 +361,99 @@ public class AuthController {
 
     @PostMapping("/finalizarCompra")
     @ResponseBody
-    public String finalizarCompra(@RequestBody Map<String, Object> payload, HttpServletRequest request) throws UnsupportedEncodingException {
+    public ResponseEntity<?> finalizarCompra(
+            @RequestBody Map<String, Object> payload,
+            HttpServletRequest request
+    ) throws UnsupportedEncodingException {
+
         String nomeCliente = CookieService.getCookie(request, "nomeUsuario");
+        String usuarioIdStr = CookieService.getCookie(request, "usuarioId");
 
-        if (nomeCliente == null || nomeCliente.isEmpty()) {
-            return "Usuário não autenticado.";
+        if (nomeCliente == null || nomeCliente.isEmpty() || usuarioIdStr == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
         }
 
-        List<Integer> produtoIds = (List<Integer>) payload.get("produtos");
-        List<Integer> quantidades = (List<Integer>) payload.get("quantidades");
+        try {
+            List<Integer> produtoIds = (List<Integer>) payload.get("produtos");
+            List<Integer> quantidades = (List<Integer>) payload.get("quantidades");
 
-        if (produtoIds == null || produtoIds.isEmpty()) {
-            return "Carrinho vazio.";
-        }
-
-        double total = 0.0;
-        List<Produto> produtos = new ArrayList<>();
-
-        for (int i = 0; i < produtoIds.size(); i++) {
-            Long id = produtoIds.get(i).longValue();
-            Produto produto = produtoRepository.findById(id).orElse(null);
-            if (produto != null) {
-                int qtd = quantidades.get(i);
-                total += produto.getPreco() * qtd;
-                produtos.add(produto);
+            if (produtoIds == null || produtoIds.isEmpty() || quantidades == null || quantidades.isEmpty()) {
+                return ResponseEntity.badRequest().body("Carrinho vazio ou dados inválidos.");
             }
+
+            // Buscar produtos do banco de dados
+            List<Produto> produtos = produtoRepository.findAllById(
+                    produtoIds.stream()
+                            .map(Integer::longValue)
+                            .collect(Collectors.toList())
+            );
+
+            if (produtos.size() != produtoIds.size()) {
+                return ResponseEntity.badRequest().body("Alguns produtos não foram encontrados.");
+            }
+
+            // Calcular valor total e verificar estoque
+            double total = 0.0;
+            for (int i = 0; i < produtos.size(); i++) {
+                Produto produto = produtos.get(i);
+                int quantidade = quantidades.get(i);
+
+                if (produto.getEstoque() < quantidade) {
+                    return ResponseEntity.badRequest().body(
+                            "Estoque insuficiente para o produto: " + produto.getNome());
+                }
+
+                double precoItem = produto.getDesconto() > 0 ?
+                        produto.getPreco() * (1 - produto.getDesconto() / 100) :
+                        produto.getPreco();
+
+                total += precoItem * quantidade;
+            }
+
+            // Criar e salvar o pedido
+            Pedido pedido = new Pedido();
+            pedido.setNomeCliente(nomeCliente);
+            pedido.setDataPedido(LocalDate.now());
+            pedido.setStatus(Pedido.StatusPedido.PROCESSANDO);
+            pedido.setValorTotal(total);
+            pedido.setProdutos(produtos);
+
+            // Associar empresa (do primeiro produto)
+            if (!produtos.isEmpty() && produtos.get(0).getEmpresa() != null) {
+                pedido.setEmpresa(produtos.get(0).getEmpresa());
+            }
+
+            pedido = pedidoRepository.save(pedido);
+
+            // Atualizar estoque dos produtos
+            for (int i = 0; i < produtos.size(); i++) {
+                Produto produto = produtos.get(i);
+                produto.setEstoque(produto.getEstoque() - quantidades.get(i));
+                produtoRepository.save(produto);
+            }
+
+            // Atualizar estatísticas da empresa
+            if (pedido.getEmpresa() != null) {
+                Empresa empresa = pedido.getEmpresa();
+                empresa.setTotalPedidos(empresa.getTotalPedidos() != null ?
+                        empresa.getTotalPedidos() + 1 : 1);
+                empresa.setTotalVendasMensal(empresa.getTotalVendasMensal() != null ?
+                        empresa.getTotalVendasMensal() + total : total);
+                empresaRepository.save(empresa);
+            }
+
+            // Retornar resposta com detalhes do pedido
+            Map<String, Object> response = new HashMap<>();
+            response.put("mensagem", "Pedido realizado com sucesso!");
+            response.put("pedidoId", pedido.getId());
+            response.put("total", total);
+            response.put("data", pedido.getDataPedido().toString());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao processar pedido: " + e.getMessage());
         }
-
-        Pedido pedido = new Pedido();
-        pedido.setNomeCliente(nomeCliente);
-        pedido.setDataPedido(LocalDate.now());
-        pedido.setStatus(Pedido.StatusPedido.PROCESSANDO);
-        pedido.setValorTotal(total);
-        pedido.setProdutos(produtos);
-
-        pedidoRepository.save(pedido);
-
-        return "Pedido realizado com sucesso!";
     }
 }
