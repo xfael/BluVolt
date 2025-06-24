@@ -13,6 +13,12 @@ function renderizarProdutos(listaProdutos) {
     }
 
     listaProdutos.forEach(produto => {
+        const precoOriginal = produto.preco;
+        const temDesconto = produto.desconto && produto.desconto > 0;
+        const precoComDesconto = temDesconto
+            ? precoOriginal * (1 - produto.desconto / 100)
+            : precoOriginal;
+
         const card = document.createElement("div");
         card.className = "eco-product-card";
 
@@ -25,7 +31,10 @@ function renderizarProdutos(listaProdutos) {
                 <h3 class="eco-product-title">${produto.nome}</h3>
                 <p class="eco-product-description">${produto.descricao}</p>
                 <div class="eco-product-price">
-                    <span class="eco-product-current-price">R$ ${produto.preco.toFixed(2).replace('.', ',')}</span>
+                    ${temDesconto
+                        ? `<span class="eco-product-original-price" style="text-decoration: line-through; color: #999;">R$ ${precoOriginal.toFixed(2).replace('.', ',')}</span>
+                           <span class="eco-product-current-price" style="color: green;">R$ ${precoComDesconto.toFixed(2).replace('.', ',')}</span>`
+                        : `<span class="eco-product-current-price">R$ ${precoOriginal.toFixed(2).replace('.', ',')}</span>`}
                 </div>
             </div>
             <button class="eco-add-to-cart eco-btn eco-btn-green" data-id="${produto.id}">
@@ -36,7 +45,6 @@ function renderizarProdutos(listaProdutos) {
         container.appendChild(card);
     });
 
-    // Adiciona eventos de adicionar ao carrinho
     document.querySelectorAll(".eco-add-to-cart").forEach(btn => {
         btn.addEventListener("click", () => {
             const id = parseInt(btn.getAttribute("data-id"));
@@ -67,7 +75,11 @@ function atualizarCarrinho() {
     let total = 0;
 
     carrinho.forEach(item => {
-        total += item.preco * item.quantidade;
+        const precoUnitario = item.desconto && item.desconto > 0
+            ? item.preco * (1 - item.desconto / 100)
+            : item.preco;
+
+        total += precoUnitario * item.quantidade;
 
         const div = document.createElement("div");
         div.className = "eco-cart-item";
@@ -76,7 +88,7 @@ function atualizarCarrinho() {
             <img src="${item.imagemUrl}" alt="${item.nome}" class="eco-cart-item-image" />
             <div class="eco-cart-item-details">
                 <div class="eco-cart-item-title">${item.nome}</div>
-                <div class="eco-cart-item-price">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')} (${item.quantidade}x)</div>
+                <div class="eco-cart-item-price">R$ ${(precoUnitario * item.quantidade).toFixed(2).replace('.', ',')} (${item.quantidade}x)</div>
             </div>
             <button class="eco-cart-item-remove">&times;</button>
         `;
@@ -124,13 +136,11 @@ const filtroOrdem = document.getElementById("eco-sort-filter");
 function aplicarFiltros() {
     let filtrados = produtos.slice();
 
-    // Categoria
     const categoria = filtroCategoria.value;
     if (categoria !== "all") {
         filtrados = filtrados.filter(p => p.tipoEnergia.toLowerCase() === categoria.toLowerCase());
     }
 
-    // Preço
     const preco = filtroPreco.value;
     filtrados = filtrados.filter(p => {
         if (preco === "0-500") return p.preco <= 500;
@@ -139,7 +149,6 @@ function aplicarFiltros() {
         return true;
     });
 
-    // Ordenar
     const ordem = filtroOrdem.value;
     if (ordem === "price-asc") {
         filtrados.sort((a, b) => a.preco - b.preco);
@@ -150,11 +159,72 @@ function aplicarFiltros() {
     renderizarProdutos(filtrados);
 }
 
-[filtroCategoria, filtroPreco, filtroOrdem].forEach(filtro => {
-    filtro.addEventListener("change", aplicarFiltros);
+// ============ FINALIZAR PEDIDO ============
+document.getElementById("eco-checkout-btn").addEventListener("click", () => {
+    fetch("/auth/finalizarPedido", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(carrinho)
+    })
+    .then(response => response.text())
+    .then(msg => {
+        alert(msg);
+        carrinho = [];
+        atualizarCarrinho();
+        modalCarrinho.style.display = "none";
+    })
+    .catch(() => {
+        alert("Erro ao finalizar pedido.");
+    });
 });
 
 // ============ INICIAL ============
 document.addEventListener("DOMContentLoaded", () => {
-    renderizarProdutos(produtos);
+    if (produtos && produtos.length > 0) {
+        renderizarProdutos(produtos);
+    }
+
+    [filtroCategoria, filtroPreco, filtroOrdem].forEach(filtro => {
+        filtro.addEventListener("change", aplicarFiltros);
+    });
+
+    document.getElementById("eco-copy-coupon").addEventListener("click", () => {
+        const cupom = document.getElementById("eco-coupon-code").textContent;
+        navigator.clipboard.writeText(cupom).then(() => {
+            alert("Cupom copiado: " + cupom);
+        }).catch(() => {
+            alert("Erro ao copiar cupom");
+        });
+    });
+});
+
+document.getElementById("eco-checkout-btn").addEventListener("click", () => {
+    if (carrinho.length === 0) {
+        alert("Carrinho está vazio.");
+        return;
+    }
+
+    const produtosIds = carrinho.map(p => p.id);
+    const quantidades = carrinho.map(p => p.quantidade);
+
+    fetch("/auth/finalizarCompra", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ produtos: produtosIds, quantidades: quantidades })
+    })
+    .then(response => response.text())
+    .then(msg => {
+        alert(msg);
+        carrinho = [];
+        atualizarCarrinho();
+        document.getElementById("eco-cart-modal").style.display = "none";
+    })
+    .catch(error => {
+        console.error("Erro ao finalizar compra:", error);
+        alert("Erro ao finalizar compra.");
+    });
 });

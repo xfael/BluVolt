@@ -124,6 +124,11 @@
                         </div>
                     </div>
 
+                    <div class="eco-form-group">
+                        <label for="eco-product-discount">Desconto (%)</label>
+                        <input type="number" id="eco-product-discount" name="desconto" min="0" max="100" placeholder="Opcional">
+                    </div>
+
                     <div class="eco-form-row">
                         <div class="eco-form-group">
                             <label for="eco-product-category">Categoria</label>
@@ -195,21 +200,76 @@
     <i class="fas fa-plus"></i>
 </div>
 
-<script th:inline="javascript">
-    const produtos = /*[[${produtos}]]*/ [];
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script th:src="@{/js/lojaEmpresa.js}"></script>
 <script>
-    window.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        const addProductBtn = document.getElementById('eco-add-product-btn');
+        const addProductModal = document.getElementById('eco-add-product-modal');
+        const closeAddProductBtn = document.getElementById('eco-close-add-product');
+        const cancelAddProductBtn = document.getElementById('eco-cancel-add-product');
+        const addProductForm = document.getElementById('eco-add-product-form');
+
+        // Abre modal
+        addProductBtn?.addEventListener('click', () => {
+            addProductModal.style.display = 'flex';
+        });
+
+        // Fecha modal
+        function closeModal() {
+            addProductModal.style.display = 'none';
+            addProductForm.reset();
+        }
+
+        closeAddProductBtn?.addEventListener('click', closeModal);
+        cancelAddProductBtn?.addEventListener('click', closeModal);
+
+        // Fecha modal ao clicar fora
+        addProductModal.addEventListener('click', (e) => {
+            if (e.target === addProductModal) {
+                closeModal();
+            }
+        });
+
+        // Feedback ao cadastrar
         const popup = document.getElementById("eco-popup-msg");
         if (popup) {
             setTimeout(() => {
                 popup.style.opacity = "0";
                 setTimeout(() => popup.remove(), 500);
-            }, 3000); // aparece por 3 segundos
+            }, 3000);
         }
+
+        // Gráfico com dados reais do backend
+        fetch('/auth/vendas-mensais')
+            .then(res => res.json())
+            .then(data => {
+                const ctx = document.getElementById('eco-sales-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Vendas Mensais (R$)',
+                            data: data.data,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: {
+                                display: true,
+                                text: 'Vendas nos Últimos 6 Meses'
+                            }
+                        }
+                    }
+                });
+            });
     });
 </script>
 </body>

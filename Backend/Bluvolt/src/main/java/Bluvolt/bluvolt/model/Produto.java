@@ -24,6 +24,9 @@ public class Produto {
     private Integer estoque;
 
     @NotNull
+    private Double desconto = 0.0;
+
+    @NotNull
     private Double preco;
 
     private String imagemUrl; // Pode armazenar um link ou path local da imagem
@@ -90,5 +93,13 @@ public class Produto {
 
     public void setEmpresa(Empresa empresa) {
         this.empresa = empresa;
+    }
+
+    public Double getDesconto() {
+        return desconto;
+    }
+
+    public void setDesconto(Double desconto) {
+        this.desconto = desconto;
     }
 }

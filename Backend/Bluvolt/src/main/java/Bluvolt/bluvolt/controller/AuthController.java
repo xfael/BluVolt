@@ -1,8 +1,10 @@
 package Bluvolt.bluvolt.controller;
 
+import Bluvolt.bluvolt.Dto.ProdutoDTO;
 import Bluvolt.bluvolt.Dto.VendasMensaisDTO;
 import Bluvolt.bluvolt.model.Consumidor;
 import Bluvolt.bluvolt.model.Empresa;
+import Bluvolt.bluvolt.model.Pedido;
 import Bluvolt.bluvolt.model.Produto;
 import Bluvolt.bluvolt.repository.ConsumidorRepository;
 import Bluvolt.bluvolt.repository.EmpresaRepository;
@@ -21,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/auth")
@@ -115,9 +118,22 @@ public class AuthController {
 
         List<Produto> produtos = produtoRepository.findAll();
 
+        List<ProdutoDTO> produtosDTO = produtos.stream().map(produto -> {
+            ProdutoDTO dto = new ProdutoDTO();
+            dto.setId(produto.getId());
+            dto.setNome(produto.getNome());
+            dto.setDescricao(produto.getDescricao());
+            dto.setTipoEnergia(produto.getTipoEnergia());
+            dto.setImagemUrl(produto.getImagemUrl());
+            dto.setPreco(produto.getPreco());
+            dto.setDesconto(produto.getDesconto());
+            dto.setEstoque(produto.getEstoque());
+            return dto;
+        }).collect(Collectors.toList());
+
         model.addAttribute("nome", nome);
         model.addAttribute("tipo", tipo);
-        model.addAttribute("produtos", produtos); // <- Esse ponto está certo!
+        model.addAttribute("produtosDTO", produtosDTO);
 
         return "loja";
     }
@@ -232,6 +248,7 @@ public class AuthController {
             @RequestParam String imagemUrl,
             @RequestParam int estoque,
             @RequestParam double preco,
+            @RequestParam(required = false) Double desconto, // <-- campo opcional de desconto
             HttpServletRequest request,
             RedirectAttributes redirectAttributes
     ) throws UnsupportedEncodingException {
@@ -258,6 +275,7 @@ public class AuthController {
         produto.setImagemUrl(imagemUrl);
         produto.setEstoque(estoque);
         produto.setPreco(preco);
+        produto.setDesconto(desconto != null ? desconto : 0.0); // <-- aplica o desconto, se houver
         produto.setEmpresa(empresa);
 
         produtoRepository.save(produto);
@@ -269,6 +287,7 @@ public class AuthController {
         redirectAttributes.addFlashAttribute("mensagem", "Produto cadastrado com sucesso!");
         return "redirect:/auth/dashEmpresa";
     }
+
 
     @PostMapping("/excluirProduto")
     public String excluirProduto(
@@ -338,4 +357,44 @@ public class AuthController {
         return dto;
     }
 
+    @PostMapping("/finalizarCompra")
+    @ResponseBody
+    public String finalizarCompra(@RequestBody Map<String, Object> payload, HttpServletRequest request) throws UnsupportedEncodingException {
+        String nomeCliente = CookieService.getCookie(request, "nomeUsuario");
+
+        if (nomeCliente == null || nomeCliente.isEmpty()) {
+            return "Usuário não autenticado.";
+        }
+
+        List<Integer> produtoIds = (List<Integer>) payload.get("produtos");
+        List<Integer> quantidades = (List<Integer>) payload.get("quantidades");
+
+        if (produtoIds == null || produtoIds.isEmpty()) {
+            return "Carrinho vazio.";
+        }
+
+        double total = 0.0;
+        List<Produto> produtos = new ArrayList<>();
+
+        for (int i = 0; i < produtoIds.size(); i++) {
+            Long id = produtoIds.get(i).longValue();
+            Produto produto = produtoRepository.findById(id).orElse(null);
+            if (produto != null) {
+                int qtd = quantidades.get(i);
+                total += produto.getPreco() * qtd;
+                produtos.add(produto);
+            }
+        }
+
+        Pedido pedido = new Pedido();
+        pedido.setNomeCliente(nomeCliente);
+        pedido.setDataPedido(LocalDate.now());
+        pedido.setStatus(Pedido.StatusPedido.PROCESSANDO);
+        pedido.setValorTotal(total);
+        pedido.setProdutos(produtos);
+
+        pedidoRepository.save(pedido);
+
+        return "Pedido realizado com sucesso!";
+    }
 }

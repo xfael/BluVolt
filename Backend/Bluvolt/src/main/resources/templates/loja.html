@@ -89,25 +89,35 @@
 
     <!-- Grade de produtos -->
     <div class="eco-products-grid" id="eco-products-grid">
-        <div class="eco-product-card" th:each="produto : ${produtos}">
+        <div class="eco-product-card" th:each="produto : ${produtosDTO}">
             <div class="eco-product-image-container">
                 <div class="eco-product-badge" th:if="${produto.estoque < 5}">Últimas unidades</div>
                 <img th:src="${produto.imagemUrl}" th:alt="${produto.nome}" class="eco-product-image" />
             </div>
+
             <div class="eco-product-info">
                 <h3 class="eco-product-title" th:text="${produto.nome}"></h3>
                 <p class="eco-product-description" th:text="${produto.descricao}"></p>
+
                 <div class="eco-product-price">
-                <span class="eco-product-current-price">
-                    R$ <span th:text="${#numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}"></span>
+            <span th:if="${produto.desconto > 0}">
+                <span class="eco-product-current-price green-price">
+                    R$ <span th:text="${#numbers.formatDecimal(produto.preco - (produto.preco * produto.desconto / 100), 1, 'COMMA', 2, 'POINT')}"></span>
                 </span>
+                <span class="eco-product-old-price gray-old-price">
+                    R$ <s th:text="${#numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}"></s>
+                </span>
+                <span class="eco-discount-badge" th:text="'-' + ${produto.desconto.intValue()} + '%'"></span>
+            </span>
+                    <span th:unless="${produto.desconto > 0}" class="eco-product-current-price green-price">
+                R$ <span th:text="${#numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}"></span>
+            </span>
                 </div>
             </div>
 
             <button class="eco-add-to-cart eco-btn eco-btn-green" th:attr="data-id=${produto.id}">
                 <i class="fas fa-cart-plus"></i> Adicionar
             </button>
-
         </div>
     </div>
 
@@ -141,7 +151,7 @@
 </div>
 
 <script th:inline="javascript">
-    const produtos = [[${produtos}]];
+    const produtos = /*[[${produtosDTO}]]*/ [];
 </script>
 
 <script th:src="@{/js/loja.js}"></script>
