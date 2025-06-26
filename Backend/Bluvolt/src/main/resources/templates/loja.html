@@ -5,26 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bluvolt - Loja Sustentável</title>
     <link rel="stylesheet" th:href="@{/css/loja.css}">
+
+    <link rel="icon" type="image/webp" th:href="@{/imagens/logo-bluvolt.webp}">
+    <link rel="apple-touch-icon" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="32x32" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="16x16" th:href="@{/imagens/logo-bluvolt.png}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-<!-- Barra de navegação superior (consistente com o chat) -->
-<nav class="eco-navbar">
-    <div class="eco-navbar-brand">Bluvolt</div>
-    <div class="eco-navbar-links">
-        <a href="teste.html" class="eco-nav-link active">
-            Chat
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #808080;">
+    <div class="container">
+        <a class="navbar-brand" href="/auth/inicio">
+            <img th:src="@{/imagens/logo-bluvolt.png}" alt="BluVolt" class="navbar-logo">
         </a>
-        <a href="loja.html" class="eco-nav-link">
-            Loja
-        </a>
-        <a href="#" class="eco-nav-link">
-            Cupons
-        </a>
-    </div>
-    <div class="eco-user-profile">
-        <span id="eco-username" th:text="${nome}"></span>
-        <div class="eco-user-avatar" id="eco-user-avatar">CS</div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Itens centrais -->
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/auth/inicio">Início</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/auth/services">Serviços</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/auth/projects">Projetos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/auth/blog">Blog</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/auth/faq">FAQ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/auth/dashConsumidor">Produtos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-sm btn-secondary text-white ms-2 px-3" href="/auth/contact">Contato</a>
+                </li>
+            </ul>
+
+            <!-- Ações de login/logout -->
+            <ul class="navbar-nav">
+                <!-- Mostrar botão de login se usuário não estiver logado -->
+                <li class="nav-item" th:if="${nome == null}">
+                    <a class="nav-link btn btn-sm btn-outline-light px-3" href="/auth/register">Entrar / Cadastrar</a>
+                </li>
+
+                <!-- Mostrar dropdown se usuário estiver logado -->
+                <!-- Mostrar dropdown se usuário estiver logado -->
+                <li class="nav-item dropdown" th:if="${nome != null}">
+                    <a class="nav-link dropdown-toggle btn btn-sm btn-outline-light px-3" href="#" id="userDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Olá, <span th:text="${nome}">Usuário</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li>
+                            <a class="dropdown-item" href="/auth/perfil">
+                                <i class="bi bi-person-circle me-2"></i> Perfil
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/auth/favorito}">
+                                <i class="bi bi-heart-fill me-2"></i> Favoritos
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="/auth/logout">
+                                <i class="bi bi-box-arrow-right me-2"></i> Sair
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 
@@ -91,6 +157,15 @@
     <div class="eco-products-grid" id="eco-products-grid">
         <div class="eco-product-card" th:each="produto : ${produtosDTO}">
             <div class="eco-product-image-container">
+                <button class="eco-fav-btn"
+                        th:classappend="${produto.favoritado} ? 'favorited'"
+                        th:attr="data-id=${produto.id}"
+                        th:onclick="'alternarFavorito(this, ' + ${produto.id} + ')'" >
+                    <i class="fas fa-heart" th:style="${produto.favoritado} ? 'color: #ff6b6b;' : 'color: #ccc;'"></i>
+                </button>
+                <button class="eco-fav-btn" th:attr="data-id=${produto.id}" onclick="favoritarProduto(this)">
+                    <i class="fas fa-heart"></i>
+                </button>
                 <div class="eco-product-badge" th:if="${produto.estoque < 5}">Últimas unidades</div>
                 <img th:src="${produto.imagemUrl}" th:alt="${produto.nome}" class="eco-product-image" />
             </div>
@@ -118,6 +193,8 @@
             <button class="eco-add-to-cart eco-btn eco-btn-green" th:attr="data-id=${produto.id}">
                 <i class="fas fa-cart-plus"></i> Adicionar
             </button>
+
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
         </div>
     </div>
 
@@ -172,6 +249,41 @@
     const produtos = /*[[${produtosDTO}]]*/ [];
 </script>
 
+<script th:inline="javascript">
+    const tipoUsuario = /*[[${tipo}]]*/ "null";
+</script>
+
 <script th:src="@{/js/loja.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function favoritarProduto(btn) {
+     const produtoId = btn.getAttribute('data-id');
+     fetch('/auth/favoritar?produtoId=' + produtoId, {
+         method: 'POST'
+     })
+     .then(res => res.text())
+     .then(msg => alert(msg))
+     .catch(err => alert("Erro: " + err));
+ }
+    function alternarFavorito(btn, produtoId) {
+    fetch('/auth/favoritar?produtoId=' + produtoId, {
+        method: 'POST'
+    })
+    .then(res => res.text())
+    .then(status => {
+        const icon = btn.querySelector('i');
+        if (status === 'adicionado') {
+            btn.classList.add('favorited');
+            if (icon) icon.style.color = '#ff6b6b';
+        } else if (status === 'removido') {
+            btn.classList.remove('favorited');
+            if (icon) icon.style.color = '#ccc';
+        }
+    })
+    .catch(() => alert("Erro ao favoritar produto."));
+}
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </body>
 </html>

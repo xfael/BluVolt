@@ -1,5 +1,7 @@
 package Bluvolt.bluvolt.Dto;
 
+import Bluvolt.bluvolt.model.Produto;
+
 public class ProdutoDTO {
 
     private Long id;
@@ -10,6 +12,27 @@ public class ProdutoDTO {
     private double preco;
     private double desconto;
     private int estoque;
+    private boolean favoritado;
+
+    public static ProdutoDTO from(Produto produto) {
+        ProdutoDTO dto = new ProdutoDTO();
+        dto.setId(produto.getId());
+        dto.setNome(produto.getNome());
+        dto.setDescricao(produto.getDescricao());
+        dto.setImagemUrl(produto.getImagemUrl());
+        dto.setPreco(produto.getPreco());
+        dto.setDesconto(produto.getDesconto());
+        dto.setEstoque(produto.getEstoque());
+        return dto;
+    }
+
+    public void setFavoritado(boolean favoritado) {
+        this.favoritado = favoritado;
+    }
+
+    public boolean isFavoritado() {
+        return favoritado;
+    }
 
     public String getNome() {
         return nome;

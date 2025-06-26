@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Favoritos</title>
+
+    <link rel="icon" type="image/webp" th:href="@{/imagens/logo-bluvolt.webp}">
+    <link rel="apple-touch-icon" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="32x32" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="16x16" th:href="@{/imagens/logo-bluvolt.png}">
+
+    <link rel="stylesheet" th:href="@{/css/loja.css}">
+    <link rel="stylesheet" th:href="@{/css/favoritos.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <h1>Meus Produtos Favoritos</h1>
+
+    <div th:if="${favoritos.isEmpty()}" class="vazio">
+        <p>Você ainda não favoritou nenhum produto.</p>
+    </div>
+
+    <div class="eco-products-grid" th:if="${!favoritos.isEmpty()}">
+        <div class="eco-product-card" th:each="produto : ${favoritos}">
+            <div class="eco-product-image-container">
+                <!-- BOTÃO DE FAVORITAR COM ESTILO -->
+                <button class="eco-fav-btn"
+                        th:classappend="${produto.favoritado} ? 'favorited'"
+                        th:attr="data-id=${produto.id}"
+                        onclick="removerFavorito(this)">
+                    <i class="fas fa-heart" th:style="${produto.favoritado} ? 'color: #ff6b6b;' : ''"></i>
+                </button>
+
+                <img th:src="${produto.imagemUrl}" th:alt="${produto.nome}" class="eco-product-image"/>
+            </div>
+
+            <div class="eco-product-info">
+                <h3 class="eco-product-title" th:text="${produto.nome}"></h3>
+                <p class="eco-product-description" th:text="${produto.descricao}"></p>
+
+                <div class="eco-product-price">
+            <span th:if="${produto.desconto > 0}">
+                <span class="eco-product-current-price green-price">
+                    R$ <span th:text="${#numbers.formatDecimal(produto.preco - (produto.preco * produto.desconto / 100), 1, 'COMMA', 2, 'POINT')}"></span>
+                </span>
+                <span class="eco-product-old-price gray-old-price">
+                    R$ <s th:text="${#numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}"></s>
+                </span>
+                <span class="eco-discount-badge" th:text="'-' + ${produto.desconto.intValue()} + '%'"></span>
+            </span>
+                    <span th:unless="${produto.desconto > 0}" class="eco-product-current-price green-price">
+                R$ <span th:text="${#numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}"></span>
+            </span>
+                </div>
+            </div>
+
+            <button class="eco-btn eco-btn-danger" th:attr="data-id=${produto.id}" onclick="removerFavorito(this)">
+                <i class="fas fa-trash"></i> Remover
+            </button>
+        </div>
+    </div>
+
+    <a href="/auth/dashConsumidor" class="voltar-btn">Voltar para Loja</a>
+</div>
+
+<script>
+    function removerFavorito(btn) {
+    const id = btn.getAttribute('data-id');
+    fetch('/auth/desfavoritar?produtoId=' + id, {
+        method: 'POST'
+    })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        location.reload();
+    })
+    .catch(err => alert("Erro ao remover: " + err));
+}
+
+    function toggleFavorito(btn) {
+    const id = btn.getAttribute('data-id');
+    const isFavorited = btn.classList.contains('favorited');
+
+    const url = isFavorited ? '/auth/desfavoritar' : '/auth/favoritar';
+
+    fetch(url + '?produtoId=' + id, { method: 'POST' })
+        .then(res => res.text())
+        .then(msg => {
+            if (msg.includes("Favoritado")) {
+                btn.classList.add('favorited');
+                btn.querySelector('i').style.color = '#ff6b6b';
+            } else {
+                btn.classList.remove('favorited');
+                btn.querySelector('i').style.color = '#ccc';
+            }
+        })
+        .catch(err => alert("Erro: " + err));
+}
+</script>
+</body>
+</html>

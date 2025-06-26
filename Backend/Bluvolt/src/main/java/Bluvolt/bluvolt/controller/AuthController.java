@@ -2,17 +2,12 @@ package Bluvolt.bluvolt.controller;
 
 import Bluvolt.bluvolt.Dto.ProdutoDTO;
 import Bluvolt.bluvolt.Dto.VendasMensaisDTO;
-import Bluvolt.bluvolt.model.Consumidor;
-import Bluvolt.bluvolt.model.Empresa;
-import Bluvolt.bluvolt.model.Pedido;
-import Bluvolt.bluvolt.model.Produto;
-import Bluvolt.bluvolt.repository.ConsumidorRepository;
-import Bluvolt.bluvolt.repository.EmpresaRepository;
-import Bluvolt.bluvolt.repository.PedidoRepository;
-import Bluvolt.bluvolt.repository.ProdutoRepository;
+import Bluvolt.bluvolt.model.*;
+import Bluvolt.bluvolt.repository.*;
 import Bluvolt.bluvolt.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +16,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
@@ -30,6 +27,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/auth")
 public class AuthController {
+
 
     @Autowired
     private ConsumidorRepository consumidorRepository;
@@ -42,6 +40,9 @@ public class AuthController {
 
     @Autowired
     private PedidoRepository pedidoRepository;
+
+    @Autowired
+    private FavoritoRepository favoritoRepository;
 
     // ==== Páginas estáticas ====
     @GetMapping("/blog")
@@ -114,10 +115,6 @@ public class AuthController {
         String nome = CookieService.getCookie(request, "nomeUsuario");
         String tipo = CookieService.getCookie(request, "tipoUsuario");
 
-        if (nome == null || tipo == null || !"consumidor".equalsIgnoreCase(tipo)) {
-            return "redirect:/auth/register";
-        }
-
         List<Produto> produtos = produtoRepository.findAll();
 
         List<ProdutoDTO> produtosDTO = produtos.stream().map(produto -> {
@@ -133,11 +130,12 @@ public class AuthController {
             return dto;
         }).collect(Collectors.toList());
 
+        // Mesmo se nome ou tipo for null, ainda carrega a view
         model.addAttribute("nome", nome);
         model.addAttribute("tipo", tipo);
         model.addAttribute("produtosDTO", produtosDTO);
 
-        return "loja";
+        return "loja"; // loja.html
     }
 
     // ==== Login ====
@@ -150,12 +148,15 @@ public class AuthController {
             HttpServletResponse response
     ) throws UnsupportedEncodingException {
 
+        // Define validade de 1 ano para os cookies
+        int umAnoEmSegundos = 60 * 60 * 24 * 365;
+
         if ("consumidor".equalsIgnoreCase(tipoUsuario)) {
             Consumidor consumidor = consumidorRepository.login(email, senha);
             if (consumidor != null) {
-                CookieService.setCookie(response, "usuarioId", String.valueOf(consumidor.getId()), 3600);
-                CookieService.setCookie(response, "tipoUsuario", "consumidor", 3600);
-                CookieService.setCookie(response, "nomeUsuario", consumidor.getNome(), 3600);
+                CookieService.setCookie(response, "usuarioId", String.valueOf(consumidor.getId()), umAnoEmSegundos);
+                CookieService.setCookie(response, "tipoUsuario", "consumidor", umAnoEmSegundos);
+                CookieService.setCookie(response, "nomeUsuario", consumidor.getNome(), umAnoEmSegundos);
                 return "redirect:/auth/dashConsumidor";
             } else {
                 model.addAttribute("erro", "Email ou senha de consumidor incorretos.");
@@ -164,9 +165,9 @@ public class AuthController {
         } else if ("empresa".equalsIgnoreCase(tipoUsuario)) {
             Empresa empresa = empresaRepository.login(email, senha);
             if (empresa != null) {
-                CookieService.setCookie(response, "usuarioId", String.valueOf(empresa.getId()), 3600);
-                CookieService.setCookie(response, "tipoUsuario", "empresa", 3600);
-                CookieService.setCookie(response, "nomeUsuario", empresa.getNome(), 3600);
+                CookieService.setCookie(response, "usuarioId", String.valueOf(empresa.getId()), umAnoEmSegundos);
+                CookieService.setCookie(response, "tipoUsuario", "empresa", umAnoEmSegundos);
+                CookieService.setCookie(response, "nomeUsuario", empresa.getNome(), umAnoEmSegundos);
                 return "redirect:/auth/dashEmpresa";
             } else {
                 model.addAttribute("erro", "Email ou senha de empresa incorretos.");
@@ -392,7 +393,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body("Alguns produtos não foram encontrados.");
             }
 
-            // Calcular valor total e verificar estoque
+
             double total = 0.0;
             for (int i = 0; i < produtos.size(); i++) {
                 Produto produto = produtos.get(i);
@@ -410,7 +411,7 @@ public class AuthController {
                 total += precoItem * quantidade;
             }
 
-            // Criar e salvar o pedido
+
             Pedido pedido = new Pedido();
             pedido.setNomeCliente(nomeCliente);
             pedido.setDataPedido(LocalDate.now());
@@ -418,21 +419,21 @@ public class AuthController {
             pedido.setValorTotal(total);
             pedido.setProdutos(produtos);
 
-            // Associar empresa (do primeiro produto)
+
             if (!produtos.isEmpty() && produtos.get(0).getEmpresa() != null) {
                 pedido.setEmpresa(produtos.get(0).getEmpresa());
             }
 
             pedido = pedidoRepository.save(pedido);
 
-            // Atualizar estoque dos produtos
+
             for (int i = 0; i < produtos.size(); i++) {
                 Produto produto = produtos.get(i);
                 produto.setEstoque(produto.getEstoque() - quantidades.get(i));
                 produtoRepository.save(produto);
             }
 
-            // Atualizar estatísticas da empresa
+
             if (pedido.getEmpresa() != null) {
                 Empresa empresa = pedido.getEmpresa();
                 empresa.setTotalPedidos(empresa.getTotalPedidos() != null ?
@@ -456,4 +457,147 @@ public class AuthController {
                     .body("Erro ao processar pedido: " + e.getMessage());
         }
     }
+
+    @GetMapping("/perfil")
+    public String perfilUsuario(Model model, HttpServletRequest request) throws UnsupportedEncodingException {
+        String tipo = CookieService.getCookie(request, "tipoUsuario");
+        String idStr = CookieService.getCookie(request, "usuarioId");
+
+        if (tipo == null || idStr == null) {
+            return "redirect:/auth/register";
+        }
+
+        try {
+            Long id = Long.parseLong(idStr);
+
+            if ("consumidor".equalsIgnoreCase(tipo)) {
+                Optional<Consumidor> consumidorOpt = consumidorRepository.findById(id);
+                if (consumidorOpt.isPresent()) {
+                    model.addAttribute("usuario", consumidorOpt.get());
+                    return "perfilConsumidor"; // Certifique-se de que o nome do arquivo é perfilConsumidor.html
+                }
+            } else if ("empresa".equalsIgnoreCase(tipo)) {
+                Optional<Empresa> empresaOpt = empresaRepository.findById(id);
+                if (empresaOpt.isPresent()) {
+                    model.addAttribute("usuario", empresaOpt.get());
+                    return "perfilEmpresa"; // Certifique-se de que o nome do arquivo é perfilEmpresa.html
+                }
+            }
+        } catch (NumberFormatException e) {
+            // Log opcional
+            System.err.println("ID inválido no cookie: " + idStr);
+        }
+
+        return "redirect:/auth/register";
+    }
+
+
+    @PostMapping("/atualizarPerfil")
+    public String atualizarPerfil(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String senha,
+            @RequestParam(required = false) String senhaAtual,
+            @RequestParam String tipo,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            RedirectAttributes redirectAttributes) throws UnsupportedEncodingException {
+
+        String idStr = CookieService.getCookie(request, "usuarioId");
+        if (idStr == null) {
+            return "redirect:/auth/register";
+        }
+
+        Long id = Long.parseLong(idStr);
+
+        if ("consumidor".equalsIgnoreCase(tipo)) {
+            Optional<Consumidor> opt = consumidorRepository.findById(id);
+            if (opt.isPresent()) {
+                Consumidor consumidor = opt.get();
+
+                // Valida senha atual obrigatoriamente se for mudar e-mail ou senha
+                if ((email != null && !email.isEmpty()) || (senha != null && !senha.isEmpty())) {
+                    if (senhaAtual == null || senhaAtual.isEmpty()) {
+                        redirectAttributes.addFlashAttribute("erro", "Por favor, informe sua senha atual.");
+                        return "redirect:/auth/perfil";
+                    }
+
+                    // Verifica se a senha atual está correta
+                    Consumidor consumidorValidacao = consumidorRepository.login(consumidor.getEmail(), senhaAtual);
+                    if (consumidorValidacao == null) {
+                        redirectAttributes.addFlashAttribute("erro", "Senha atual incorreta.");
+                        return "redirect:/auth/perfil";
+                    }
+                }
+
+                // Atualiza o e-mail, se necessário
+                if (email != null && !email.isEmpty()) {
+                    if (consumidorRepository.countByEmailAndIdNot(email, id) > 0) {
+                        redirectAttributes.addFlashAttribute("erro", "Este e-mail já está em uso por outro usuário.");
+                        return "redirect:/auth/perfil";
+                    }
+                    consumidor.setEmail(email);
+                    CookieService.setCookie(response, "nomeUsuario", consumidor.getNome(), 60 * 60 * 24 * 365);
+                }
+
+                // Atualiza a senha, se fornecida
+                if (senha != null && !senha.isEmpty()) {
+                    consumidor.setSenha(senha);
+                }
+
+                consumidorRepository.save(consumidor);
+                redirectAttributes.addFlashAttribute("mensagem", "Perfil atualizado com sucesso!");
+                return "redirect:/auth/perfil";
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("erro", "Erro ao atualizar perfil.");
+        return "redirect:/auth/perfil";
+    }
+
+    @PostMapping("/favoritar")
+    @ResponseBody
+    public String favoritar(@RequestParam Long produtoId, HttpServletRequest request) throws UnsupportedEncodingException {
+        String idStr = CookieService.getCookie(request, "usuarioId");
+        if (idStr == null) return "Não logado";
+        Long id = Long.valueOf(idStr);
+
+        Optional<Consumidor> opt = consumidorRepository.findById(id);
+        if (opt.isEmpty()) return "Usuário não encontrado";
+
+        Consumidor consumidor = opt.get();
+        Produto produto = produtoRepository.findById(produtoId).orElse(null);
+        if (produto == null) return "Produto não encontrado";
+
+        boolean jaExiste = favoritoRepository.existsByConsumidorAndProduto(consumidor, produto);
+        if (!jaExiste) {
+            Favorito favorito = new Favorito();
+            favorito.setConsumidor(consumidor);
+            favorito.setProduto(produto);
+            favoritoRepository.save(favorito);
+            return "Favoritado";
+        }
+
+        return "Já favoritado";
+    }
+
+    @PostMapping("/desfavoritar")
+    @ResponseBody
+    public String desfavoritar(@RequestParam Long produtoId, HttpServletRequest request) throws UnsupportedEncodingException {
+        String idStr = CookieService.getCookie(request, "usuarioId");
+        if (idStr == null) return "Não logado";
+        Long id = Long.valueOf(idStr);
+
+        Optional<Consumidor> opt = consumidorRepository.findById(id);
+        if (opt.isEmpty()) return "Usuário não encontrado";
+
+        Consumidor consumidor = opt.get();
+        Produto produto = produtoRepository.findById(produtoId).orElse(null);
+        if (produto == null) return "Produto não encontrado";
+
+        favoritoRepository.findByConsumidorAndProduto(consumidor, produto)
+                .ifPresent(favoritoRepository::delete);
+
+        return "Desfavoritado";
+    }
+
 }

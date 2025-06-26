@@ -282,6 +282,141 @@ body {
     font-size: 18px;
 }
 
+.eco-fav-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.eco-fav-btn.favorited {
+    color: red;
+    transform: scale(1.2);
+}
+
+.eco-fav-btn:hover {
+    color: #ff0000;
+}
+/* Estilo do botão de favoritos */
+.eco-fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    color: #ccc;
+    transition: all 0.3s ease;
+}
+
+.eco-fav-btn:hover {
+    color: #ff6b6b;
+    background: rgba(255, 255, 255, 0.9);
+}
+.eco-fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.eco-fav-btn i {
+    font-size: 18px;
+    color: #ccc; /* Cor padrão (não favoritado) */
+    transition: color 0.3s ease;
+}
+
+.eco-fav-btn:hover i {
+    color: #ff6b6b; /* Cor ao passar o mouse */
+}
+
+.eco-fav-btn.favorited i {
+    color: #ff6b6b; /* Cor quando favoritado */
+}
+
+.eco-product-image-container {
+    position: relative;
+}
+.eco-fav-btn.favorited {
+    color: #ff6b6b;
+}
+
+.eco-fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.eco-fav-btn i {
+    font-size: 18px;
+    color: #ccc; /* Cor inicial */
+    transition: all 0.3s ease;
+}
+
+.eco-fav-btn:hover i {
+    color: #ff6b6b; /* Cor ao passar mouse */
+    transform: scale(1.1);
+}
+
+.eco-fav-btn.favorited i,
+.eco-fav-btn.favorited:hover i {
+    color: #ff6b6b !important; /* Cor quando favoritado */
+}
+
+/* Efeito de clique */
+.eco-fav-btn:active {
+    transform: scale(0.95);
+}
+
+/* Efeito de pulso quando favoritado */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.eco-fav-btn.favorited {
+    animation: pulse 0.5s ease;
+}
+
+.eco-product-image-container {
+    position: relative;
+}
 #eco-close-confirmation-btn {
     margin-top: 20px;
     padding: 10px 25px;
@@ -295,7 +430,7 @@ body {
 .eco-shop-container {
     max-width: 1200px;
     margin: 20px auto;
-    padding: 0 20px;
+    padding-top: 100px;
 }
 
 /* Banner de cupom */
@@ -409,9 +544,12 @@ body {
 }
 
 .eco-product-image-container {
-    height: 200px;
-    overflow: hidden;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px; /* defina uma altura padrão, se necessário */
+    overflow: hidden;
 }
 
 .eco-product-image {

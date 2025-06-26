@@ -1,6 +1,7 @@
 // ============ VARIÁVEIS GLOBAIS ============
 let carrinho = [];
-const produtosOriginais = produtos.slice(); // Cópia para reset de filtros
+const produtosOriginais = produtos.slice();
+let favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
 
 // ============ FUNÇÕES PRINCIPAIS ============
 
@@ -21,11 +22,16 @@ function renderizarProdutos(listaProdutos) {
             ? precoOriginal * (1 - produto.desconto / 100)
             : precoOriginal;
 
+        const isFavorito = favoritos.includes(produto.id);
+
         const card = document.createElement("div");
         card.className = "eco-product-card";
 
         card.innerHTML = `
             <div class="eco-product-image-container">
+                <button class="eco-fav-btn ${isFavorito ? 'favorited' : ''}" data-id="${produto.id}">
+                    <i class="fas fa-heart" ${isFavorito ? 'style="color: #ff6b6b;"' : ''}></i>
+                </button>
                 ${produto.estoque < 5 ? '<div class="eco-product-badge">Últimas unidades</div>' : ""}
                 <img src="${produto.imagemUrl}" alt="${produto.nome}" class="eco-product-image" />
             </div>
@@ -45,6 +51,14 @@ function renderizarProdutos(listaProdutos) {
             </button>
         `;
 
+        // Adiciona evento para o botão de favoritar
+        const favBtn = card.querySelector(".eco-fav-btn");
+        favBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            favoritarProduto(produto.id, favBtn);
+        });
+
+        // Adiciona evento para o botão de adicionar ao carrinho
         const addToCartBtn = card.querySelector(".eco-add-to-cart");
         addToCartBtn.addEventListener("click", () => {
             adicionarAoCarrinho(produto);
@@ -53,6 +67,40 @@ function renderizarProdutos(listaProdutos) {
         container.appendChild(card);
     });
 }
+
+// Função para favoritar/desfavoritar produto
+function favoritarProduto(produtoId, btnElement) {
+    // Alterna estado do favorito
+    const index = favoritos.indexOf(produtoId);
+    const isFavorito = index === -1;
+
+    // Atualiza visualmente imediatamente
+    if (isFavorito) {
+        favoritos.push(produtoId);
+        btnElement.classList.add('favorited');
+        btnElement.innerHTML = '<i class="fas fa-heart" style="color: #ff6b6b;"></i>';
+
+        // Efeito de pulso
+        btnElement.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            btnElement.style.transform = 'scale(1)';
+        }, 300);
+    } else {
+        favoritos.splice(index, 1);
+        btnElement.classList.remove('favorited');
+        btnElement.innerHTML = '<i class="fas fa-heart"></i>';
+    }
+
+    // Atualiza localStorage
+    localStorage.setItem('favoritos', JSON.stringify(favoritos));
+
+    // Envia para o backend (opcional)
+    const endpoint = isFavorito ? 'favoritar' : 'desfavoritar';
+    fetch(`/auth/${endpoint}/${produtoId}`, { method: 'POST' })
+        .catch(error => console.error(`Erro ao ${endpoint}:`, error));
+}
+
+
 
 // Função para adicionar ao carrinho
 function adicionarAoCarrinho(produto) {
@@ -187,17 +235,20 @@ function finalizarCompra() {
         return;
     }
 
-    // Preparar dados para enviar ao servidor
+    const tipoUsuario = /*[[${tipo}]]*/ "null";
+
+    if (!tipoUsuario || tipoUsuario !== 'consumidor') {
+        alert("Você precisa estar logado como consumidor para finalizar a compra.");
+        return;
+    }
+
     const produtosIds = carrinho.map(item => item.id);
     const quantidades = carrinho.map(item => item.quantidade);
 
-    // Enviar para o backend
     fetch("/auth/finalizarCompra", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            // Adicione o cabeçalho CSRF se necessário
-            // "X-CSRF-TOKEN": document.querySelector("meta[name='_csrf']").content
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
             produtos: produtosIds,
@@ -221,7 +272,6 @@ function finalizarCompra() {
 
 // Função para exibir modal de confirmação
 function exibirModalConfirmacao(data) {
-    // Calcular total com descontos
     const total = carrinho.reduce((sum, item) => {
         const precoComDesconto = item.desconto > 0 ?
             item.preco * (1 - item.desconto / 100) :
@@ -229,7 +279,6 @@ function exibirModalConfirmacao(data) {
         return sum + (precoComDesconto * item.quantidade);
     }, 0);
 
-    // Criar HTML do modal
     const modalHTML = `
         <div class="eco-modal" id="eco-confirmation-modal">
             <div class="eco-modal-content" style="max-width: 500px;">
@@ -257,10 +306,6 @@ function exibirModalConfirmacao(data) {
                             <span>Total:</span>
                             <strong>R$ ${total.toFixed(2).replace('.', ',')}</strong>
                         </div>
-                        <div class="eco-order-date">
-                            <span>Data:</span>
-                            <span>${new Date().toLocaleDateString('pt-BR')}</span>
-                        </div>
                     </div>
                     <button class="eco-btn eco-btn-green" id="eco-close-confirmation-btn">
                         <i class="fas fa-thumbs-up"></i> OK
@@ -270,19 +315,15 @@ function exibirModalConfirmacao(data) {
         </div>
     `;
 
-    // Inserir o modal no DOM
     const modalDiv = document.createElement('div');
     modalDiv.innerHTML = modalHTML;
     document.body.appendChild(modalDiv);
 
-    // Mostrar o modal
     document.getElementById('eco-confirmation-modal').style.display = 'flex';
 
-    // Event listeners para fechar o modal
     document.getElementById('eco-close-confirmation')?.addEventListener('click', fecharModalConfirmacao);
     document.getElementById('eco-close-confirmation-btn')?.addEventListener('click', fecharModalConfirmacao);
 
-    // Limpar carrinho após confirmação
     carrinho = [];
     atualizarCarrinho();
     document.getElementById('eco-cart-modal').style.display = 'none';
@@ -298,16 +339,13 @@ function fecharModalConfirmacao() {
 
 // ============ EVENT LISTENERS ============
 
-// Filtros
 document.getElementById("eco-category-filter").addEventListener("change", aplicarFiltros);
 document.getElementById("eco-price-filter").addEventListener("change", aplicarFiltros);
 document.getElementById("eco-sort-filter").addEventListener("change", aplicarFiltros);
 
-// Copiar cupom
 document.getElementById("eco-copy-coupon").addEventListener("click", () => {
     const cupom = document.getElementById("eco-coupon-code").textContent;
     navigator.clipboard.writeText(cupom).then(() => {
-        // Feedback visual
         const btn = document.getElementById("eco-copy-coupon");
         btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
         setTimeout(() => {
@@ -318,7 +356,6 @@ document.getElementById("eco-copy-coupon").addEventListener("click", () => {
     });
 });
 
-// Carrinho
 document.getElementById("eco-cart-button").addEventListener("click", () => {
     document.getElementById("eco-cart-modal").style.display = "flex";
 });
@@ -327,7 +364,6 @@ document.getElementById("eco-close-cart").addEventListener("click", () => {
     document.getElementById("eco-cart-modal").style.display = "none";
 });
 
-// Finalizar compra
 document.getElementById("eco-checkout-btn").addEventListener("click", finalizarCompra);
 
 // ============ INICIALIZAÇÃO ============

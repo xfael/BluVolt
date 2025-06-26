@@ -13,4 +13,8 @@ public interface ConsumidorRepository extends CrudRepository<Consumidor, Long> {
 
     @Query(value = "SELECT * FROM bluvoltuser.consumidor WHERE email = :email AND senha = :senha", nativeQuery = true)
     Consumidor login(@Param("email") String email, @Param("senha") String senha);
+
+    @Query("SELECT COUNT(c) FROM Consumidor c WHERE c.email = :email AND c.id <> :id")
+    Long countByEmailAndIdNot(@Param("email") String email, @Param("id") Long id);
 }
+

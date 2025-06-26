@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <link rel="icon" type="image/webp" th:href="@{/imagens/logo-bluvolt.webp}">
+    <link rel="apple-touch-icon" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="32x32" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" sizes="16x16" th:href="@{/imagens/logo-bluvolt.png}">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Bluvolt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --danger-color: #ea4335;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --medium-gray: #757575;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-right: 20px;
+        }
+
+        .profile-info h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .profile-info p {
+            color: var(--medium-gray);
+            margin-bottom: 0;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--dark-gray);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3367d6;
+        }
+
+        .btn-outline-secondary {
+            border: 1px solid #ddd;
+            background: white;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #f5f5f5;
+        }
+
+        .info-field {
+            padding: 10px 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .btn-outline-secondary.voltar-btn {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 500;
+}
+
+.btn-outline-secondary.voltar-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+        @media (max-width: 576px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-avatar {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/auth/dashConsumidor" class="btn btn-outline-secondary mb-3">
+        &larr; Voltar para a Loja
+    </a>
+    <div class="profile-card">
+        <div th:if="${mensagem}" class="alert alert-success" th:text="${mensagem}"></div>
+        <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
+        <div class="profile-header">
+            <div class="profile-avatar" th:text="${#strings.substring(usuario.nome, 0, 1)}"></div>
+            <div class="profile-info">
+                <h2 th:text="${usuario.nome}">Nome do Usuário</h2>
+                <p th:text="${usuario.email}">email@exemplo.com</p>
+            </div>
+        </div>
+
+        <!-- Seção de Informações Pessoais (somente leitura) -->
+        <div class="form-section">
+            <h3>Informações Pessoais</h3>
+            <div class="form-group">
+                <label>Nome completo</label>
+                <div class="info-field" th:text="${usuario.nome}">Nome do Usuário</div>
+            </div>
+
+            <div class="form-group">
+                <label>CPF</label>
+                <div class="info-field" th:text="${usuario.cpf}">000.000.000-00</div>
+            </div>
+        </div>
+
+        <!-- Seção para alterar email -->
+        <div class="form-section">
+            <h3>Alterar E-mail</h3>
+            <form th:action="@{/auth/atualizarPerfil}" method="post">
+                <input type="hidden" name="tipo" value="consumidor">
+
+                <div class="form-group">
+                    <label for="current-email">E-mail atual</label>
+                    <input type="email" class="form-control" id="current-email" th:value="${usuario.email}" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-email">Novo e-mail</label>
+                    <input type="email" class="form-control" id="new-email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email-password">Confirme sua senha atual</label>
+                    <input type="password" class="form-control" id="email-password" name="senhaAtual" required>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Seção para alterar senha -->
+        <div class="form-section">
+            <h3>Alterar Senha</h3>
+            <form th:action="@{/auth/atualizarPerfil}" method="post" onsubmit="return validarSenha()">
+                <input type="hidden" name="tipo" value="consumidor">
+
+                <div class="form-group">
+                    <label for="current-password">Senha atual</label>
+                    <input type="password" class="form-control" id="current-password" name="senhaAtual" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-password">Nova senha</label>
+                    <input type="password" class="form-control" id="new-password" name="senha" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirmar nova senha</label>
+                    <input type="password" class="form-control" id="confirm-password" required>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary">Alterar Senha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validarSenha() {
+        const novaSenha = document.getElementById('new-password').value;
+        const confirmarSenha = document.getElementById('confirm-password').value;
+
+        if (novaSenha !== confirmarSenha) {
+            alert('As senhas não coincidem!');
+            return false;
+        }
+
+        if (novaSenha.length < 6) {
+            alert('A senha deve ter pelo menos 6 caracteres!');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+</body>
+</html>
