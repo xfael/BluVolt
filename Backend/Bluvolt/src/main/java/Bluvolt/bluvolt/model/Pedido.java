@@ -18,6 +18,8 @@ public class Pedido {
 
     private Double valorTotal;
 
+    private boolean confirmado;
+
     @Enumerated(EnumType.STRING)
     private StatusPedido status;
 
@@ -25,13 +27,14 @@ public class Pedido {
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "pedido_produtos",
             joinColumns = @JoinColumn(name = "pedido_id"),
             inverseJoinColumns = @JoinColumn(name = "produto_id")
     )
     private List<Produto> produtos;
+
 
     public enum StatusPedido {
         ENVIADO, ENTREGUE, PROCESSANDO, PAGO
@@ -87,5 +90,13 @@ public class Pedido {
 
     public void setProdutos(List<Produto> produtos) {
         this.produtos = produtos;
+    }
+
+    public boolean isConfirmado() {
+        return confirmado;
+    }
+
+    public void setConfirmado(boolean confirmado) {
+        this.confirmado = confirmado;
     }
 }

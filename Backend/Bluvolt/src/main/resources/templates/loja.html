@@ -64,7 +64,6 @@
                 </li>
 
                 <!-- Mostrar dropdown se usuário estiver logado -->
-                <!-- Mostrar dropdown se usuário estiver logado -->
                 <li class="nav-item dropdown" th:if="${nome != null}">
                     <a class="nav-link dropdown-toggle btn btn-sm btn-outline-light px-3" href="#" id="userDropdown"
                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -74,11 +73,6 @@
                         <li>
                             <a class="dropdown-item" href="/auth/perfil">
                                 <i class="bi bi-person-circle me-2"></i> Perfil
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" th:href="@{/auth/favorito}">
-                                <i class="bi bi-heart-fill me-2"></i> Favoritos
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
@@ -96,20 +90,8 @@
 
 <!-- Conteúdo principal da loja -->
 <div class="eco-shop-container">
-    <!-- Banner de cupom -->
-    <div class="eco-coupon-banner" id="eco-coupon-banner">
-        <div class="eco-coupon-content">
-            <div class="eco-coupon-info">
-                <span class="eco-coupon-icon"><i class="fas fa-gift"></i></span>
-                <div class="eco-coupon-text">
-                    <strong>SEU CUPOM: <span id="eco-coupon-code">ECO10OFF</span></strong>
-                    <span id="eco-coupon-value">10% de desconto em produtos selecionados</span>
-                </div>
-            </div>
-            <button class="eco-copy-btn" id="eco-copy-coupon">
-                <i class="fas fa-copy"></i> Copiar
-            </button>
-        </div>
+    <div class="eco-search-container my-4">
+        <input type="text" id="eco-search-input" class="eco-search-input" placeholder="🔍 Buscar por nome do produto...">
     </div>
 
     <!-- Filtros da loja -->
@@ -148,7 +130,6 @@
                 <option value="relevance">Relevância</option>
                 <option value="price-asc">Preço: Menor → Maior</option>
                 <option value="price-desc">Preço: Maior → Menor</option>
-                <option value="rating">Melhor Avaliado</option>
             </select>
         </div>
     </div>
@@ -157,15 +138,7 @@
     <div class="eco-products-grid" id="eco-products-grid">
         <div class="eco-product-card" th:each="produto : ${produtosDTO}">
             <div class="eco-product-image-container">
-                <button class="eco-fav-btn"
-                        th:classappend="${produto.favoritado} ? 'favorited'"
-                        th:attr="data-id=${produto.id}"
-                        th:onclick="'alternarFavorito(this, ' + ${produto.id} + ')'" >
-                    <i class="fas fa-heart" th:style="${produto.favoritado} ? 'color: #ff6b6b;' : 'color: #ccc;'"></i>
-                </button>
-                <button class="eco-fav-btn" th:attr="data-id=${produto.id}" onclick="favoritarProduto(this)">
-                    <i class="fas fa-heart"></i>
-                </button>
+
                 <div class="eco-product-badge" th:if="${produto.estoque < 5}">Últimas unidades</div>
                 <img th:src="${produto.imagemUrl}" th:alt="${produto.nome}" class="eco-product-image" />
             </div>
@@ -249,41 +222,63 @@
     const produtos = /*[[${produtosDTO}]]*/ [];
 </script>
 
-<script th:inline="javascript">
-    const tipoUsuario = /*[[${tipo}]]*/ "null";
-</script>
-
 <script th:src="@{/js/loja.js}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function favoritarProduto(btn) {
-     const produtoId = btn.getAttribute('data-id');
-     fetch('/auth/favoritar?produtoId=' + produtoId, {
-         method: 'POST'
-     })
-     .then(res => res.text())
-     .then(msg => alert(msg))
-     .catch(err => alert("Erro: " + err));
- }
-    function alternarFavorito(btn, produtoId) {
-    fetch('/auth/favoritar?produtoId=' + produtoId, {
-        method: 'POST'
+    function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+function finalizarCompra() {
+    if (carrinho.length === 0) {
+        alert("Seu carrinho está vazio!");
+        return;
+    }
+
+    // Removei a verificação do tipoUsuario para permitir finalizar sem login
+
+    const produtosIds = carrinho.map(item => item.id);
+    const quantidades = carrinho.map(item => item.quantidade);
+
+    fetch('/auth/finalizarCompra', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            produtos: produtosIds,
+            quantidades: quantidades
+        }),
+        credentials: 'include'  // mantém o envio de cookies caso tenha login
     })
-    .then(res => res.text())
-    .then(status => {
-        const icon = btn.querySelector('i');
-        if (status === 'adicionado') {
-            btn.classList.add('favorited');
-            if (icon) icon.style.color = '#ff6b6b';
-        } else if (status === 'removido') {
-            btn.classList.remove('favorited');
-            if (icon) icon.style.color = '#ccc';
-        }
+    .then(response => {
+        if (!response.ok) throw new Error("Erro ao finalizar compra");
+        return response.json();
     })
-    .catch(() => alert("Erro ao favoritar produto."));
+    .then(data => {
+        exibirModalConfirmacao(data);
+        // limpa o carrinho depois da compra
+        carrinho = [];
+        localStorage.setItem("ecoCart", JSON.stringify(carrinho));
+        atualizarCarrinho();
+    })
+    .catch(error => {
+        console.error("Erro:", error);
+        alert("Erro ao finalizar compra: " + error.message);
+    });
 }
 </script>
+
+<script>
+    const tipoUsuario = /*[[${tipo != null ? "'" + tipo + "'" : "'null'"}]]*/ 'null';
+    console.log("Tipo do usuário:", tipoUsuario);
+</script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </body>
 </html>

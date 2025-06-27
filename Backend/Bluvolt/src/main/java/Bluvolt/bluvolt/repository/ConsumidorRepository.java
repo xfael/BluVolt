@@ -16,5 +16,11 @@ public interface ConsumidorRepository extends CrudRepository<Consumidor, Long> {
 
     @Query("SELECT COUNT(c) FROM Consumidor c WHERE c.email = :email AND c.id <> :id")
     Long countByEmailAndIdNot(@Param("email") String email, @Param("id") Long id);
+
+    Optional<Consumidor> findByEmail(String email);
+
+    boolean existsByEmail(String email);
+
+
 }
 

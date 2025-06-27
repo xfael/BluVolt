@@ -426,6 +426,30 @@ body {
     gap: 8px;
 }
 
+.eco-search-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 1rem 2rem;
+}
+
+.eco-search-input {
+    width: 100%;
+    max-width: 800px;
+    padding: 14px 22px;
+    font-size: 1.1rem;
+    border: 2px solid #ccc;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    outline: none;
+}
+
+.eco-search-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+}
+
 /* Container principal */
 .eco-shop-container {
     max-width: 1200px;

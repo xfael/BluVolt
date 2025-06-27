@@ -19,7 +19,7 @@ public class Empresa {
     @NotEmpty
     private String nome;
 
-    @NotEmpty
+    @Column(unique = true, nullable = false)
     private String email;
 
     @NotEmpty

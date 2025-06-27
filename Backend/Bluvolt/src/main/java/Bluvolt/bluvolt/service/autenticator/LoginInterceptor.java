@@ -16,22 +16,30 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         String requestURI = request.getRequestURI();
 
-        // ====== Rotas públicas liberadas (não precisam login) ======
-        if (requestURI.equals("/auth/register") ||
-                requestURI.equals("/auth/logar") ||
-                requestURI.equals("/auth/inicio") ||
-                requestURI.equals("/auth/faq") ||
-                requestURI.equals("/auth/contact") ||
-                requestURI.equals("/auth/projects") ||
-                requestURI.equals("/auth/services") ||
-                requestURI.equals("/auth/blog") ||
-                requestURI.startsWith("/css/") ||
-                requestURI.startsWith("/js/") ||
-                requestURI.startsWith("/imagens/")) {
+        // Liberar rotas públicas
+        if (
+                requestURI.equals("/auth/register") ||
+                        requestURI.equals("/auth/logar") ||
+                        requestURI.equals("/auth/inicio") ||
+                        requestURI.equals("/auth/faq") ||
+                        requestURI.equals("/auth/contact") ||
+                        requestURI.equals("/auth/projects") ||
+                        requestURI.equals("/auth/services") ||
+                        requestURI.equals("/auth/blog") ||
+                        requestURI.equals("/auth/favoritos") ||
+                        requestURI.startsWith("/css/") ||
+                        requestURI.startsWith("/js/") ||
+                        requestURI.startsWith("/imagens/")
+        ) {
             return true;
         }
 
-        // ====== Verificar se existe cookie de login ======
+        // LIBERA AS DASHES para evitar erro de primeira requisição
+        if (requestURI.equals("/auth/dashEmpresa") || requestURI.equals("/auth/dashConsumidor")) {
+            return true;
+        }
+
+        // Verifica o cookie de login
         String tipoUsuario = CookieService.getCookie(request, "tipoUsuario");
 
         if (tipoUsuario == null || tipoUsuario.isEmpty()) {
@@ -39,20 +47,15 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // ====== Proteção específica: dashEmpresa só acessível por empresa ======
-        if (requestURI.startsWith("/auth/dashEmpresa")) {
-            if (!"empresa".equalsIgnoreCase(tipoUsuario)) {
-                response.sendRedirect("/auth/inicio");
-                return false;
-            }
+        // Proteção específica sa porra nao funciona !!!!!!!!!!!!!!!!
+        if (requestURI.startsWith("/auth/dashEmpresa") && !"empresa".equalsIgnoreCase(tipoUsuario)) {
+            response.sendRedirect("/auth/inicio");
+            return false;
         }
 
-        // ====== Proteção específica: dashConsumidor só acessível por consumidor ======
-        if (requestURI.startsWith("/auth/dashConsumidor")) {
-            if (!"consumidor".equalsIgnoreCase(tipoUsuario)) {
-                response.sendRedirect("/auth/inicio");
-                return false;
-            }
+        if (requestURI.startsWith("/auth/dashConsumidor") && !"consumidor".equalsIgnoreCase(tipoUsuario)) {
+            response.sendRedirect("/auth/inicio");
+            return false;
         }
 
         return true;

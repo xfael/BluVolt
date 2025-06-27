@@ -224,12 +224,14 @@
 <div class="area-central">
     <div class="lado-esquerdo">
         <h2>Olá novamente!</h2>
-        <div th:if="${erro}" class="alert alert-danger text-center mt-3" role="alert">
-            <span th:text="${erro}"></span>
-        </div>
+
         <div th:if="${mensagem}" class="alert alert-success text-center mt-3" role="alert">
             <span th:text="${mensagem}"></span>
         </div>
+        <div th:if="${erro != null}" class="alert alert-danger text-center mt-3" role="alert">
+            <span th:text="${erro}"></span>
+        </div>
+
         <form action="/auth/logar" method="post">
             <label for="loginEmail">Email</label>
             <input id="loginEmail" name="email" type="email" required />
@@ -244,12 +246,7 @@
             </select>
 
             <div class="d-flex align-items-center justify-content-between mt-4">
-                <button type="submit" class="me-2" style="width: 45%;">Login</button>
-                <span class="text-white fw-semibold">ou</span>
-                <button class="btn-google ms-2" type="button" style="width: 45%;">
-                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" style="height: 20px;">
-                    Google
-                </button>
+                <button type="submit" class="me-2" style="width: 100%;">Login</button>
             </div>
 
             <button style="margin-bottom = -200px;" type="button" class="btn btn-outline-light fw-semibold mt-4" onclick="mostrarFormularioCadastro()">

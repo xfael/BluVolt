@@ -97,15 +97,24 @@ public class AuthController {
             return "redirect:/auth/register";
         }
 
+        LocalDate dataLimite = LocalDate.now().minusDays(30);
+        Double totalVendas = pedidoRepository.totalVendasPorEmpresaNoUltimoMes(empresaId, dataLimite);
+        Long totalPedidos = pedidoRepository.countPedidosPendentesPorEmpresa(empresaId);
+        Long totalProdutos = produtoRepository.countByEmpresaId(empresaId);
+        Long totalClientes = pedidoRepository.countClientesDiferentesPorEmpresa(empresaId);
+
         model.addAttribute("nome", nome);
         model.addAttribute("tipo", tipo);
-        model.addAttribute("totalProdutos", empresa.getTotalProdutos() != null ? empresa.getTotalProdutos() : 0);
-        model.addAttribute("totalPedidos", empresa.getTotalPedidos() != null ? empresa.getTotalPedidos() : 0);
-        model.addAttribute("totalVendasMensal", empresa.getTotalVendasMensal() != null ? empresa.getTotalVendasMensal() : 0.0);
-        model.addAttribute("totalClientes", empresa.getTotalClientes() != null ? empresa.getTotalClientes() : 0);
+        model.addAttribute("totalProdutos", totalProdutos != null ? totalProdutos : 0);
+        model.addAttribute("totalPedidos", totalPedidos != null ? totalPedidos : 0);
+        model.addAttribute("totalVendasMensal", totalVendas != null ? totalVendas : 0.0);  // Corrigido aqui
+        model.addAttribute("totalClientes", totalClientes != null ? totalClientes : 0);
 
         List<Produto> produtos = produtoRepository.findAllByEmpresaId(empresaId);
         model.addAttribute("produtos", produtos);
+
+        List<Pedido> pedidos = pedidoRepository.findPedidosByEmpresaId(empresaId);
+        model.addAttribute("pedidos", pedidos);
 
         return "/lojaEmpresa";
     }
@@ -146,185 +155,123 @@ public class AuthController {
             @RequestParam String tipoUsuario,
             Model model,
             HttpServletResponse response
-    ) throws UnsupportedEncodingException {
+    ) throws IOException {
 
-        // Define validade de 1 ano para os cookies
         int umAnoEmSegundos = 60 * 60 * 24 * 365;
 
+        String emailTratado = email.trim().toLowerCase();
+
         if ("consumidor".equalsIgnoreCase(tipoUsuario)) {
-            Consumidor consumidor = consumidorRepository.login(email, senha);
+            Consumidor consumidor = consumidorRepository.login(emailTratado, senha);
             if (consumidor != null) {
                 CookieService.setCookie(response, "usuarioId", String.valueOf(consumidor.getId()), umAnoEmSegundos);
                 CookieService.setCookie(response, "tipoUsuario", "consumidor", umAnoEmSegundos);
                 CookieService.setCookie(response, "nomeUsuario", consumidor.getNome(), umAnoEmSegundos);
-                return "redirect:/auth/dashConsumidor";
+                response.sendRedirect("/auth/dashConsumidor");
+                return null;
             } else {
                 model.addAttribute("erro", "Email ou senha de consumidor incorretos.");
             }
-
         } else if ("empresa".equalsIgnoreCase(tipoUsuario)) {
-            Empresa empresa = empresaRepository.login(email, senha);
+            Empresa empresa = empresaRepository.login(emailTratado, senha);
             if (empresa != null) {
                 CookieService.setCookie(response, "usuarioId", String.valueOf(empresa.getId()), umAnoEmSegundos);
                 CookieService.setCookie(response, "tipoUsuario", "empresa", umAnoEmSegundos);
                 CookieService.setCookie(response, "nomeUsuario", empresa.getNome(), umAnoEmSegundos);
-                return "redirect:/auth/dashEmpresa";
+                response.sendRedirect("/auth/dashEmpresa");
+                return null;
             } else {
                 model.addAttribute("erro", "Email ou senha de empresa incorretos.");
             }
-
-        } else {
-            model.addAttribute("erro", "Tipo de usuário inválido.");
         }
 
         return "register";
     }
 
-    // ==== Cadastro ====
+    // Cadastro
     @PostMapping("/register")
     public String cadastro(
             @RequestParam("tipo") String tipo,
             @RequestParam String nome,
-            @RequestParam String sobrenome, // <- Adicionado aqui
+            @RequestParam(required = false) String sobrenome,
             @RequestParam String email,
             @RequestParam String senha,
             @RequestParam(required = false) String cpf,
             @RequestParam(required = false) String cnpj,
             @RequestParam(required = false) String tipoEnergia,
-            Model model
-    ) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttributes
+    ) throws UnsupportedEncodingException {
+        int umAnoEmSegundos = 60 * 60 * 24 * 365;
+
         if ("consumidor".equalsIgnoreCase(tipo)) {
-            if (nome.isEmpty() || sobrenome.isEmpty() || email.isEmpty() || senha.isEmpty() || cpf == null || cpf.isEmpty()) {
-                model.addAttribute("erro", "Preencha todos os campos obrigatórios do consumidor.");
-                return "register";
+            if (nome.isEmpty() || sobrenome == null || sobrenome.isEmpty() ||
+                    email.isEmpty() || senha.isEmpty() || cpf == null || cpf.isEmpty()) {
+                redirectAttributes.addFlashAttribute("erro", "Preencha todos os campos obrigatórios do consumidor.");
+                return "redirect:/auth/register";
+            }
+
+            // DEBUG
+            Optional<Consumidor> cExistente = consumidorRepository.findByEmail(email.trim().toLowerCase());
+            System.out.println("[DEBUG] Consumidor com email " + email + " existe? " + cExistente.isPresent());
+
+            if (consumidorRepository.existsByEmail(email.trim().toLowerCase())) {
+                redirectAttributes.addFlashAttribute("erro", "Este e-mail já está cadastrado.");
+                return "redirect:/auth/register";
             }
 
             Consumidor consumidor = new Consumidor();
-            consumidor.setNome(nome.trim() + " " + sobrenome.trim()); // <- Nome completo aqui
-            consumidor.setEmail(email);
+            consumidor.setNome(nome.trim() + " " + sobrenome.trim());
+            consumidor.setEmail(email.trim().toLowerCase());
             consumidor.setSenha(senha);
-            consumidor.setCpf(cpf);
+            consumidor.setCpf(cpf.trim());
 
             consumidorRepository.save(consumidor);
-            model.addAttribute("mensagem", "Cadastro de consumidor realizado com sucesso!");
+
+            CookieService.setCookie(response, "usuarioId", String.valueOf(consumidor.getId()), umAnoEmSegundos);
+            CookieService.setCookie(response, "tipoUsuario", "consumidor", umAnoEmSegundos);
+            CookieService.setCookie(response, "nomeUsuario", consumidor.getNome(), umAnoEmSegundos);
+
+            return "redirect:/auth/dashConsumidor";
 
         } else if ("empresa".equalsIgnoreCase(tipo)) {
             if (nome.isEmpty() || email.isEmpty() || senha.isEmpty() ||
                     cnpj == null || cnpj.isEmpty() ||
                     tipoEnergia == null || tipoEnergia.isEmpty()) {
-                model.addAttribute("erro", "Preencha todos os campos obrigatórios da empresa.");
-                return "register";
+                redirectAttributes.addFlashAttribute("erro", "Preencha todos os campos obrigatórios da empresa.");
+                return "redirect:/auth/register";
+            }
+
+            // DEBUG
+            Optional<Empresa> eExistente = empresaRepository.findByEmail(email.trim().toLowerCase());
+            System.out.println("[DEBUG] Empresa com email " + email + " existe? " + eExistente.isPresent());
+
+            if (empresaRepository.existsByEmail(email.trim().toLowerCase())) {
+                redirectAttributes.addFlashAttribute("erro", "Este e-mail já está cadastrado.");
+                return "redirect:/auth/register";
             }
 
             Empresa empresa = new Empresa();
-            empresa.setNome(nome);
-            empresa.setEmail(email);
+            empresa.setNome(nome.trim());
+            empresa.setEmail(email.trim().toLowerCase());
             empresa.setSenha(senha);
-            empresa.setCnpj(cnpj);
-            empresa.setTipoEnergia(tipoEnergia);
+            empresa.setCnpj(cnpj.trim());
+            empresa.setTipoEnergia(tipoEnergia.trim());
 
             empresaRepository.save(empresa);
-            model.addAttribute("mensagem", "Cadastro de empresa realizado com sucesso!");
+
+            CookieService.setCookie(response, "usuarioId", String.valueOf(empresa.getId()), umAnoEmSegundos);
+            CookieService.setCookie(response, "tipoUsuario", "empresa", umAnoEmSegundos);
+            CookieService.setCookie(response, "nomeUsuario", empresa.getNome(), umAnoEmSegundos);
+
+            return "redirect:/auth/dashEmpresa";
 
         } else {
-            model.addAttribute("erro", "Tipo de cadastro inválido.");
-            return "register";
-        }
-
-        return "redirect:/auth/register";
-    }
-
-    // ==== Logout ====
-    @GetMapping("/logout")
-    public String logout(HttpServletResponse response) throws UnsupportedEncodingException {
-        CookieService.setCookie(response, "usuarioId", "", 0);
-        CookieService.setCookie(response, "tipoUsuario", "", 0);
-        CookieService.setCookie(response, "nomeUsuario", "", 0);
-        return "redirect:/auth/register";
-    }
-
-    @PostMapping("/cadastrarProduto")
-    public String cadastrarProduto(
-            @RequestParam String nome,
-            @RequestParam String descricao,
-            @RequestParam String tipoEnergia,
-            @RequestParam String imagemUrl,
-            @RequestParam int estoque,
-            @RequestParam double preco,
-            @RequestParam(required = false) Double desconto, // <-- campo opcional de desconto
-            HttpServletRequest request,
-            RedirectAttributes redirectAttributes
-    ) throws UnsupportedEncodingException {
-        String tipo = CookieService.getCookie(request, "tipoUsuario");
-        String usuarioIdStr = CookieService.getCookie(request, "usuarioId");
-
-        if (!"empresa".equalsIgnoreCase(tipo) || usuarioIdStr == null) {
-            redirectAttributes.addFlashAttribute("erro", "Acesso negado. Apenas empresas podem cadastrar produtos.");
+            redirectAttributes.addFlashAttribute("erro", "Tipo de cadastro inválido.");
             return "redirect:/auth/register";
         }
-
-        Long empresaId = Long.parseLong(usuarioIdStr);
-        Empresa empresa = empresaRepository.findById(empresaId).orElse(null);
-
-        if (empresa == null) {
-            redirectAttributes.addFlashAttribute("erro", "Empresa não encontrada.");
-            return "redirect:/auth/register";
-        }
-
-        Produto produto = new Produto();
-        produto.setNome(nome);
-        produto.setDescricao(descricao);
-        produto.setTipoEnergia(tipoEnergia);
-        produto.setImagemUrl(imagemUrl);
-        produto.setEstoque(estoque);
-        produto.setPreco(preco);
-        produto.setDesconto(desconto != null ? desconto : 0.0); // <-- aplica o desconto, se houver
-        produto.setEmpresa(empresa);
-
-        produtoRepository.save(produto);
-
-        Integer total = empresa.getTotalProdutos();
-        empresa.setTotalProdutos(total != null ? total + 1 : 1);
-        empresaRepository.save(empresa);
-
-        redirectAttributes.addFlashAttribute("mensagem", "Produto cadastrado com sucesso!");
-        return "redirect:/auth/dashEmpresa";
     }
 
-
-    @PostMapping("/excluirProduto")
-    public String excluirProduto(
-            @RequestParam Long produtoId,
-            HttpServletRequest request,
-            RedirectAttributes redirectAttributes
-    ) throws UnsupportedEncodingException {
-        String tipo = CookieService.getCookie(request, "tipoUsuario");
-        String usuarioIdStr = CookieService.getCookie(request, "usuarioId");
-
-        if (!"empresa".equalsIgnoreCase(tipo) || usuarioIdStr == null) {
-            redirectAttributes.addFlashAttribute("erro", "Acesso negado.");
-            return "redirect:/auth/register";
-        }
-
-        Long empresaId = Long.parseLong(usuarioIdStr);
-        Produto produto = produtoRepository.findById(produtoId).orElse(null);
-
-        if (produto == null || produto.getEmpresa() == null || !produto.getEmpresa().getId().equals(empresaId)) {
-            redirectAttributes.addFlashAttribute("erro", "Produto não encontrado ou acesso não autorizado.");
-            return "redirect:/auth/dashEmpresa";
-        }
-
-        produtoRepository.delete(produto);
-
-        Empresa empresa = empresaRepository.findById(empresaId).orElse(null);
-        if (empresa != null && empresa.getTotalProdutos() != null && empresa.getTotalProdutos() > 0) {
-            empresa.setTotalProdutos(empresa.getTotalProdutos() - 1);
-            empresaRepository.save(empresa);
-        }
-
-        redirectAttributes.addFlashAttribute("mensagem", "Produto excluído com sucesso.");
-        return "redirect:/auth/dashEmpresa";
-    }
 
     @GetMapping("/vendas-mensais")
     @ResponseBody
@@ -375,6 +322,7 @@ public class AuthController {
         }
 
         try {
+            // Pega os IDs e quantidades enviados no corpo JSON
             List<Integer> produtoIds = (List<Integer>) payload.get("produtos");
             List<Integer> quantidades = (List<Integer>) payload.get("quantidades");
 
@@ -382,10 +330,10 @@ public class AuthController {
                 return ResponseEntity.badRequest().body("Carrinho vazio ou dados inválidos.");
             }
 
-            // Buscar produtos do banco de dados
+            // Busca os produtos no banco, convertendo para Long
             List<Produto> produtos = produtoRepository.findAllById(
                     produtoIds.stream()
-                            .map(Integer::longValue)
+                            .map(Long::valueOf)
                             .collect(Collectors.toList())
             );
 
@@ -393,25 +341,25 @@ public class AuthController {
                 return ResponseEntity.badRequest().body("Alguns produtos não foram encontrados.");
             }
 
-
+            // Calcula o total e verifica estoque
             double total = 0.0;
             for (int i = 0; i < produtos.size(); i++) {
                 Produto produto = produtos.get(i);
                 int quantidade = quantidades.get(i);
 
                 if (produto.getEstoque() < quantidade) {
-                    return ResponseEntity.badRequest().body(
-                            "Estoque insuficiente para o produto: " + produto.getNome());
+                    return ResponseEntity.badRequest()
+                            .body("Estoque insuficiente para o produto: " + produto.getNome());
                 }
 
-                double precoItem = produto.getDesconto() > 0 ?
+                double precoUnitario = produto.getDesconto() > 0 ?
                         produto.getPreco() * (1 - produto.getDesconto() / 100) :
                         produto.getPreco();
 
-                total += precoItem * quantidade;
+                total += precoUnitario * quantidade;
             }
 
-
+            // Cria o pedido e associa os produtos
             Pedido pedido = new Pedido();
             pedido.setNomeCliente(nomeCliente);
             pedido.setDataPedido(LocalDate.now());
@@ -419,31 +367,33 @@ public class AuthController {
             pedido.setValorTotal(total);
             pedido.setProdutos(produtos);
 
-
+            // Linka a empresa do primeiro produto (presumindo que todos são da mesma empresa)
             if (!produtos.isEmpty() && produtos.get(0).getEmpresa() != null) {
                 pedido.setEmpresa(produtos.get(0).getEmpresa());
             }
 
-            pedido = pedidoRepository.save(pedido);
+            pedidoRepository.save(pedido);
 
-
+            // Atualiza o estoque dos produtos
             for (int i = 0; i < produtos.size(); i++) {
                 Produto produto = produtos.get(i);
-                produto.setEstoque(produto.getEstoque() - quantidades.get(i));
+                int quantidade = quantidades.get(i);
+                produto.setEstoque(produto.getEstoque() - quantidade);
                 produtoRepository.save(produto);
             }
 
-
+            // Atualiza dados da empresa: pedidos, vendas e clientes
             if (pedido.getEmpresa() != null) {
                 Empresa empresa = pedido.getEmpresa();
-                empresa.setTotalPedidos(empresa.getTotalPedidos() != null ?
-                        empresa.getTotalPedidos() + 1 : 1);
-                empresa.setTotalVendasMensal(empresa.getTotalVendasMensal() != null ?
-                        empresa.getTotalVendasMensal() + total : total);
+                empresa.setTotalPedidos(empresa.getTotalPedidos() != null ? empresa.getTotalPedidos() + 1 : 1);
+                empresa.setTotalVendasMensal(empresa.getTotalVendasMensal() != null ? empresa.getTotalVendasMensal() + total : total);
+
+                // Incrementa totalClientes em 1 a cada pedido
+                empresa.setTotalClientes(empresa.getTotalClientes() != null ? empresa.getTotalClientes() + 1 : 1);
+
                 empresaRepository.save(empresa);
             }
 
-            // Retornar resposta com detalhes do pedido
             Map<String, Object> response = new HashMap<>();
             response.put("mensagem", "Pedido realizado com sucesso!");
             response.put("pedidoId", pedido.getId());
@@ -457,6 +407,7 @@ public class AuthController {
                     .body("Erro ao processar pedido: " + e.getMessage());
         }
     }
+
 
     @GetMapping("/perfil")
     public String perfilUsuario(Model model, HttpServletRequest request) throws UnsupportedEncodingException {
@@ -554,50 +505,200 @@ public class AuthController {
         return "redirect:/auth/perfil";
     }
 
-    @PostMapping("/favoritar")
-    @ResponseBody
-    public String favoritar(@RequestParam Long produtoId, HttpServletRequest request) throws UnsupportedEncodingException {
-        String idStr = CookieService.getCookie(request, "usuarioId");
-        if (idStr == null) return "Não logado";
-        Long id = Long.valueOf(idStr);
+    @GetMapping("/logout")
+    public String logout(HttpServletResponse response) throws UnsupportedEncodingException {
+        CookieService.setCookie(response, "usuarioId", "", 0);
+        CookieService.setCookie(response, "tipoUsuario", "", 0);
+        CookieService.setCookie(response, "nomeUsuario", "", 0);
+        return "redirect:/auth/register";
+    }
 
-        Optional<Consumidor> opt = consumidorRepository.findById(id);
-        if (opt.isEmpty()) return "Usuário não encontrado";
+    @PostMapping("/cadastrarProduto")
+    public String cadastrarProduto(
+            @RequestParam String nome,
+            @RequestParam String descricao,
+            @RequestParam String tipoEnergia,
+            @RequestParam String imagemUrl,
+            @RequestParam int estoque,
+            @RequestParam double preco,
+            @RequestParam(required = false) Double desconto, // <-- campo opcional de desconto
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) throws UnsupportedEncodingException {
+        String tipo = CookieService.getCookie(request, "tipoUsuario");
+        String usuarioIdStr = CookieService.getCookie(request, "usuarioId");
 
-        Consumidor consumidor = opt.get();
-        Produto produto = produtoRepository.findById(produtoId).orElse(null);
-        if (produto == null) return "Produto não encontrado";
-
-        boolean jaExiste = favoritoRepository.existsByConsumidorAndProduto(consumidor, produto);
-        if (!jaExiste) {
-            Favorito favorito = new Favorito();
-            favorito.setConsumidor(consumidor);
-            favorito.setProduto(produto);
-            favoritoRepository.save(favorito);
-            return "Favoritado";
+        if (!"empresa".equalsIgnoreCase(tipo) || usuarioIdStr == null) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado. Apenas empresas podem cadastrar produtos.");
+            return "redirect:/auth/register";
         }
 
-        return "Já favoritado";
+        Long empresaId = Long.parseLong(usuarioIdStr);
+        Empresa empresa = empresaRepository.findById(empresaId).orElse(null);
+
+        if (empresa == null) {
+            redirectAttributes.addFlashAttribute("erro", "Empresa não encontrada.");
+            return "redirect:/auth/register";
+        }
+
+        Produto produto = new Produto();
+        produto.setNome(nome);
+        produto.setDescricao(descricao);
+        produto.setTipoEnergia(tipoEnergia);
+        produto.setImagemUrl(imagemUrl);
+        produto.setEstoque(estoque);
+        produto.setPreco(preco);
+        produto.setDesconto(desconto != null ? desconto : 0.0); // <-- aplica o desconto, se houver
+        produto.setEmpresa(empresa);
+
+        produtoRepository.save(produto);
+
+        Integer total = empresa.getTotalProdutos();
+        empresa.setTotalProdutos(total != null ? total + 1 : 1);
+        empresaRepository.save(empresa);
+
+        redirectAttributes.addFlashAttribute("mensagem", "Produto cadastrado com sucesso!");
+        return "redirect:/auth/dashEmpresa";
     }
 
-    @PostMapping("/desfavoritar")
-    @ResponseBody
-    public String desfavoritar(@RequestParam Long produtoId, HttpServletRequest request) throws UnsupportedEncodingException {
+
+    @GetMapping("/perfilEmpresa")
+    public String perfilEmpresa(Model model, HttpServletRequest request) throws UnsupportedEncodingException {
+        String tipo = CookieService.getCookie(request, "tipoUsuario");
         String idStr = CookieService.getCookie(request, "usuarioId");
-        if (idStr == null) return "Não logado";
-        Long id = Long.valueOf(idStr);
 
-        Optional<Consumidor> opt = consumidorRepository.findById(id);
-        if (opt.isEmpty()) return "Usuário não encontrado";
+        if (!"empresa".equalsIgnoreCase(tipo) || idStr == null) {
+            return "redirect:/auth/register";
+        }
 
-        Consumidor consumidor = opt.get();
-        Produto produto = produtoRepository.findById(produtoId).orElse(null);
-        if (produto == null) return "Produto não encontrado";
+        Long id = Long.parseLong(idStr);
+        Optional<Empresa> empresaOpt = empresaRepository.findById(id);
 
-        favoritoRepository.findByConsumidorAndProduto(consumidor, produto)
-                .ifPresent(favoritoRepository::delete);
+        if (empresaOpt.isPresent()) {
+            model.addAttribute("usuario", empresaOpt.get());
+            return "perfilEmpresa";
+        }
 
-        return "Desfavoritado";
+        return "redirect:/auth/register";
     }
 
+    @PostMapping("/atualizarPerfilEmpresa")
+    public String atualizarPerfilEmpresa(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String senha,
+            @RequestParam(required = false) String tipoEnergia,
+            @RequestParam(required = false) String senhaAtual,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            RedirectAttributes redirectAttributes) throws UnsupportedEncodingException {
+
+        // 1. Obter ID da empresa da sessão
+        String idStr = CookieService.getCookie(request, "usuarioId");
+        if (idStr == null) {
+            return "redirect:/auth/register";
+        }
+        Long id = Long.parseLong(idStr);
+
+        // 2. Buscar empresa no banco de dados
+        Optional<Empresa> empresaOpt = empresaRepository.findById(id);
+        if (empresaOpt.isEmpty()) {
+            return "redirect:/auth/register";
+        }
+        Empresa empresa = empresaOpt.get();
+
+        // 3. Atualizar nome (se fornecido)
+        if (nome != null && !nome.isEmpty()) {
+            empresa.setNome(nome);
+            // Atualiza cookie com novo nome
+            CookieService.setCookie(response, "nomeUsuario", nome, 60 * 60 * 24 * 365);
+        }
+
+        // 4. Atualizar tipo de energia (se fornecido)
+        if (tipoEnergia != null && !tipoEnergia.isEmpty()) {
+            empresa.setTipoEnergia(tipoEnergia);
+        }
+
+        // 5. Atualizar email (se fornecido)
+        if (email != null && !email.isEmpty()) {
+            // Verificar se email já está em uso por outra empresa
+            Optional<Empresa> empresaComEmail = empresaRepository.findByEmail(email);
+            if (empresaComEmail.isPresent() && !empresaComEmail.get().getId().equals(id)) {
+                redirectAttributes.addFlashAttribute("erro", "Este e-mail já está em uso por outra empresa.");
+                return "redirect:/auth/perfilEmpresa";
+            }
+            empresa.setEmail(email);
+        }
+
+        // 6. Atualizar senha (se fornecido)
+        if (senha != null && !senha.isEmpty()) {
+            // Validar senha atual
+            if (senhaAtual == null || senhaAtual.isEmpty() || !empresa.getSenha().equals(senhaAtual)) {
+                redirectAttributes.addFlashAttribute("erro", "Senha atual incorreta.");
+                return "redirect:/auth/perfilEmpresa";
+            }
+            empresa.setSenha(senha);
+        }
+
+        empresaRepository.save(empresa);
+
+        redirectAttributes.addFlashAttribute("mensagem", "Perfil atualizado com sucesso!");
+        return "redirect:/auth/perfilEmpresa";
+    }
+
+    @PostMapping("/confirmarPedido")
+    public ResponseEntity<?> confirmarPedido(@RequestParam Long pedidoId) {
+        var pedidoOpt = pedidoRepository.findById(pedidoId);
+        if (pedidoOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Pedido não encontrado");
+        }
+
+        Pedido pedido = pedidoOpt.get();
+        pedido.setConfirmado(true);
+        pedido.setStatus(Pedido.StatusPedido.PAGO); // ou outro status que preferir
+        pedidoRepository.save(pedido);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/excluirProduto")
+    public ResponseEntity<?> excluirProduto(@RequestParam Long produtoId) {
+        if (!produtoRepository.existsById(produtoId)) {
+            return ResponseEntity.status(404).body("Produto não encontrado");
+        }
+
+        produtoRepository.deleteById(produtoId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/detalhes-pedido/{pedidoId}")
+    @ResponseBody
+    public ResponseEntity<?> getDetalhesPedido(@PathVariable Long pedidoId) {
+        Optional<Pedido> pedidoOpt = pedidoRepository.findById(pedidoId);
+        if (pedidoOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Pedido não encontrado");
+        }
+
+        Pedido pedido = pedidoOpt.get();
+
+        List<Map<String, Object>> produtosDetalhes = pedido.getProdutos().stream().map(produto -> {
+            Map<String, Object> p = new HashMap<>();
+            p.put("id", produto.getId());
+            p.put("nome", produto.getNome());
+            p.put("preco", produto.getPreco());
+            p.put("quantidade", 1);  // Sempre 1, já que não tem info de quantidade no model
+            return p;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", pedido.getId());
+        response.put("nomeCliente", pedido.getNomeCliente());
+        response.put("dataPedido", pedido.getDataPedido().toString());
+        response.put("valorTotal", pedido.getValorTotal());
+        response.put("status", pedido.getStatus().toString());
+        response.put("produtos", produtosDetalhes);
+
+        return ResponseEntity.ok(response);
+    }
 }
+

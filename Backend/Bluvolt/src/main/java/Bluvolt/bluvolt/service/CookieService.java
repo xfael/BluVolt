@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
@@ -21,19 +22,15 @@ public class CookieService {
         response.addCookie(cookie);
     }
 
-    public static String getCookie(HttpServletRequest request, String key) throws UnsupportedEncodingException {
-        String valor = Optional.ofNullable(request.getCookies())
-                .flatMap(cookies -> Arrays.stream(cookies)
-                        .filter(cookie -> key.equals(cookie.getName()))
-                        .findAny())
-                .map(Cookie::getValue)
-                .orElse(null);
-
-        if (valor != null) {
-            valor = URLDecoder.decode(valor, "UTF-8");
+    public static String getCookie(HttpServletRequest request, String nome) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals(nome)) {
+                    return URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
+                }
+            }
         }
-
-        return valor;
+        return null;
     }
 
 }

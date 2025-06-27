@@ -1,29 +1,109 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bluvolt - Painel do Vendedor</title>
 
-    <link rel="icon" type="image/webp" th:href="@{/imagens/logo-bluvolt.webp}">
-    <link rel="apple-touch-icon" th:href="@{/imagens/logo-bluvolt.png}">
-    <link rel="icon" sizes="32x32" th:href="@{/imagens/logo-bluvolt.png}">
-    <link rel="icon" sizes="16x16" th:href="@{/imagens/logo-bluvolt.png}">
+    <link rel="icon" type="image/webp" th:href="@{/imagens/logo-bluvolt.webp}" />
+    <link rel="apple-touch-icon" th:href="@{/imagens/logo-bluvolt.png}" />
+    <link rel="icon" sizes="32x32" th:href="@{/imagens/logo-bluvolt.png}" />
+    <link rel="icon" sizes="16x16" th:href="@{/imagens/logo-bluvolt.png}" />
 
-    <link rel="stylesheet" th:href="@{/css/lojaEmpresa.css}">
-    <link rel="stylesheet" th:href="@{/css/loja.css}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/lojaEmpresa.css}" />
+    <link rel="stylesheet" th:href="@{/css/loja.css}" />
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
 </head>
+<style>
+    .eco-user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.eco-dropdown-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 14px;
+}
+
+.eco-dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    z-index: 1000;
+    padding: 8px 0;
+}
+
+.eco-dropdown-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.eco-dropdown-item:hover {
+    background-color: #f5f5f5;
+}
+
+.eco-dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.eco-user-dropdown:hover .eco-dropdown-menu {
+    display: block;
+}
+
+.eco-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #4285f4;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+</style>
 <body>
 <nav class="eco-navbar">
     <div class="eco-navbar-brand">Bluvolt - Painel</div>
     <div class="eco-navbar-links">
         <a href="#" class="eco-nav-link active">Dashboard</a>
-        <a href="perfilConsumidor.html" class="eco-nav-link">Chat</a>
     </div>
     <div class="eco-user-profile">
-        <span id="eco-username" th:text="${nome}"></span>
-        <div class="eco-user-avatar" id="eco-user-avatar">EE</div>
+        <!-- Alterado para dropdown -->
+        <div class="eco-user-dropdown">
+            <button class="eco-dropdown-toggle">
+                <span id="eco-username" th:text="${nome}"></span>
+                <div class="eco-user-avatar" id="eco-user-avatar" th:text="${#strings.substring(nome, 0, 1)}"></div>
+                <i class="fas fa-caret-down"></i>
+            </button>
+            <div class="eco-dropdown-menu">
+                <a th:href="@{/auth/perfilEmpresa}" class="eco-dropdown-item">
+                    <i class="fas fa-user-edit"></i> Editar Perfil
+                </a>
+                <a th:href="@{/auth/logout}" class="eco-dropdown-item">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </a>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -86,17 +166,37 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr><td>#1025</td><td>Carlos Silva</td><td>10/06/2023</td><td>R$ 1.299,90</td><td><span class="eco-status shipped">Enviado</span></td></tr>
-                        <tr><td>#1024</td><td>Ana Oliveira</td><td>09/06/2023</td><td>R$ 899,90</td><td><span class="eco-status delivered">Entregue</span></td></tr>
-                        <tr>
-                            <td>#1023</td><td>Roberto Santos</td><td>08/06/2023</td><td>R$ 2.499,90</td>
-                            <td><span class="eco-status processing">Processando</span></td>
+                        <tr th:each="pedido : ${pedidos}" th:attr="data-pedido-id=${pedido.id}">
+                            <td th:text="'#' + ${pedido.id}"></td>
+                            <td th:text="${pedido.nomeCliente}"></td>
+                            <td th:text="${#temporals.format(pedido.dataPedido, 'dd/MM/yyyy')}"></td>
+                            <td th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorTotal, 1, 'COMMA', 2, 'POINT')}"></td>
                             <td>
-                                <button class="eco-action-btn view"><i class="fas fa-eye"></i></button>
-                                <button class="eco-action-btn print"><i class="fas fa-print"></i></button>
+        <span class="eco-status"
+              th:classappend="' ' + ${pedido.status.name().toLowerCase()}">
+              <span th:text="${pedido.status}"></span>
+        </span>
+                            </td>
+                            <td>
+                                <button class="eco-action-btn view"
+                                        th:attr="data-pedido-id=${pedido.id}"
+                                        onclick="abrirDetalhesPedido(this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                <button class="eco-action-btn confirm"
+                                        th:attr="data-pedido-id=${pedido.id}"
+                                        onclick="confirmarPedido(this)" title="Confirmar">
+                                    <i class="fas fa-check"></i>
+                                </button>
+
+                                <button class="eco-action-btn delete" title="Excluir"
+                                        th:attr="data-pedido-id=${pedido.id}"
+                                        onclick="excluirPedido(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </td>
                         </tr>
-                        <tr><td>#1022</td><td>Mariana Costa</td><td>07/06/2023</td><td>R$ 1.799,90</td><td><span class="eco-status paid">Pago</span></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -191,12 +291,11 @@
                 </div>
 
                 <!-- Botão de exclusão -->
-                <form th:action="@{/auth/excluirProduto}" method="post" style="margin-top: 10px;">
-                    <input type="hidden" name="produtoId" th:value="${produto.id}" />
-                    <button type="submit" class="eco-btn eco-btn-red">
-                        <i class="fas fa-trash-alt"></i> Excluir
-                    </button>
-                </form>
+                <button class="eco-action-btn delete" title="Excluir"
+                        th:attr="data-produto-id=${produto.id}"
+                        onclick="excluirProduto(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -277,6 +376,95 @@
                 });
             });
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // Fechar dropdown ao clicar fora
+    document.addEventListener('click', function(e) {
+        const dropdowns = document.querySelectorAll('.eco-dropdown-menu');
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.parentElement.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+
+    // Alternar dropdown
+    const toggle = document.querySelector('.eco-dropdown-toggle');
+    if (toggle) {
+        toggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const menu = this.nextElementSibling;
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+    }
+});
+
+function abrirDetalhesPedido(button) {
+  const pedidoId = button.getAttribute('data-pedido-id');
+
+  fetch(`/auth/detalhes-pedido/${pedidoId}`)
+    .then(res => res.json())
+    .then(data => {
+      const body = document.getElementById('detalhes-pedido-body');
+      body.innerHTML = `
+        <p><strong>Cliente:</strong> ${data.nomeCliente}</p>
+        <p><strong>Data:</strong> ${data.dataPedido}</p>
+        <p><strong>Total:</strong> R$ ${data.valorTotal.toFixed(2)}</p>
+        <hr>
+        <table style="width:100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="border-bottom: 1px solid #ccc; padding: 4px;">Produto</th>
+              <th style="border-bottom: 1px solid #ccc; padding: 4px;">Quantidade</th>
+              <th style="border-bottom: 1px solid #ccc; padding: 4px;">Preço</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.produtos.map(prod =>
+              `<tr>
+                <td style="padding: 4px;">${prod.nome}</td>
+                <td style="padding: 4px; text-align:center;">${prod.quantidade || 1}</td>
+                <td style="padding: 4px;">R$ ${prod.preco.toFixed(2)}</td>
+              </tr>`
+            ).join('')}
+          </tbody>
+        </table>
+      `;
+      document.getElementById('modal-detalhes-pedido').style.display = 'flex';
+    })
+    .catch(() => alert("Erro ao carregar detalhes do pedido."));
+}
+
+function fecharDetalhesPedido() {
+  document.getElementById('modal-detalhes-pedido').style.display = 'none';
+}
+
+// Pegando CSRF para os fetches
+const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+function confirmarPedido(button) {
+  if (!confirm("Tem certeza que deseja confirmar esse pedido?")) return;
+  const tr = button.closest('tr');
+  if (tr) tr.style.display = 'none';
+}
+
+function excluirProduto(button) {
+  if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+  const card = button.closest('.eco-product-card');
+  if (card) card.style.display = 'none';
+}
+
 </script>
+
+<!-- Modal detalhes pedido -->
+<div id="modal-detalhes-pedido" style="display:none; position: fixed; top:10%; left:50%; transform: translateX(-50%);
+    background: white; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.3); max-width: 400px; width: 90%; padding: 20px; z-index: 1000; flex-direction: column;">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+        <h3>Detalhes do Pedido</h3>
+        <button onclick="fecharDetalhesPedido()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+    </div>
+    <div id="detalhes-pedido-body"></div>
+</div>
 </body>
 </html>
